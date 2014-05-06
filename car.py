@@ -1,3 +1,4 @@
+import math
 
 ADVANCE = 'Avanzando'
 CHANGING_LANE = 'Cambiando de carril'
@@ -13,5 +14,11 @@ class Car(object):
         self.speed = speed
         self.people_carried = people_carried
         self.state = ADVANCE
-        self.halted_on_light = False
 
+    def is_first_on_traffic_light(self):
+        return math.floor(self.position) == self.position \
+                and int(self.position) % 100 == 0
+
+    def advance(self, delta_time):
+        self.halted_on_light = False
+        # TODO: Move the car according to speed and time and neighbours
