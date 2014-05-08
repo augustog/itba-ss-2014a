@@ -43,5 +43,43 @@ class ControlTest(unittest.TestCase):
         # Cleanup
         self.lane.remove_car(other_car)
 
+    def test_get_next_car_before_next_traffic_light_returns_car(self):
+        light = TrafficLight(100)
+        self.car.position = 20
+        other_car = Car(80, 0, 0, 0)
+        self.lane.add_car(other_car)
+        self.assertEquals(
+            control.get_next_car_before_next_traffic_light(
+                self.car, self.lane, [light]
+            ), other_car
+        )
+        self.lane.remove_car(other_car)
+        self.car.position = 200
+
+    def test_get_next_car_before_next_traffic_light_returns_none(self):
+        light = TrafficLight(100)
+        self.car.position = 20
+        other_car = Car(120, 0, 0, 0)
+        self.lane.add_car(other_car)
+        self.assertFalse(
+            control.get_next_car_before_next_traffic_light(
+                self.car, self.lane, [light]
+            )
+        )
+        self.lane.remove_car(other_car)
+        self.car.position = 200
+
+    def test_get_next_car_before_next_traffic_light_when_car_on_light(self):
+        light = TrafficLight(200)
+        other_car = Car(220, 0, 0, 0)
+        self.lane.add_car(other_car)
+        self.assertFalse(
+            control.get_next_car_before_next_traffic_light(
+                self.car, self.lane, [light]
+            )
+        )
+        self.lane.remove_car(other_car)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -10,18 +10,43 @@ def rear(car, observer_speed):
     margin = math.ceil(observer_speed / MPS_PER_METER) or 1
     return car.position - car.length - margin
 
+get_position = lambda x: x.position
+
+def get_next_traffic_light(car, traffic_lights):
+    return _next_in_set(car.position, traffic_lights, get_position)
+
+def get_next_car(car, lane):
+    return _next_in_set(car.position, filter(lambda x: x is not car, lane.cars), get_position)
+
 def can_advance(car, lane, traffic_lights, time):
     pos = car.position
-    get_position = lambda x: x.position
-
-    next_car = _next_in_set(
-        pos, filter(lambda x: x is not car, lane.cars), get_position
-    )
+    next_car = get_next_car(car, lane)
 
     if car.is_first_on_traffic_light():
-        next_traffic_light = _next_in_set(pos, traffic_lights, get_position)
+        next_traffic_light = get_next_traffic_light(car, traffic_lights)
         return next_traffic_light.is_green(time) \
                 and (not next_car or rear(next_car, car.speed) > pos)
     else:
         return not next_car or rear(next_car, car.speed) > pos
+
+def get_next_car_before_next_traffic_light(car, lane, traffic_lights):
+    next_traffic_light = get_next_traffic_light(car, traffic_lights)
+    next_car = get_next_car(car, lane)
+
+    return next_car and ((not next_traffic_light and next_car) or
+        (next_car.position < next_traffic_light.position and next_car))
+
+def advance(car, lane, traffic_lights, time, delta_time):
+
+    if not can_advance(car, lane, traffic_lights, time):
+        if not car.speed:
+            return
+        else:
+            next_car = _next_in_set(
+                pos, filter(lambda x: x is not car, lane.cars), get_position
+            )
+            free_space_ahead = rear(next_car, car.speed) - car.position
+
+
+    next_stop_is_car = False
 
