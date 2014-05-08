@@ -15,6 +15,10 @@ class Car(object):
         self.people_carried = people_carried
         self.state = ADVANCE
 
+    def accelerate(self, delta_time):
+        self.speed += self.acceleration * delta_time
+        self.speed = max(self.speed, self.max_speed)
+
     def is_first_on_traffic_light(self):
         return math.floor(self.position) == self.position \
                 and int(self.position) % 100 == 0
