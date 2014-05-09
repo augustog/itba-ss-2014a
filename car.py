@@ -26,3 +26,9 @@ class Car(object):
     def advance(self, delta_time):
         self.halted_on_light = False
         # TODO: Move the car according to speed and time and neighbours
+
+    def __str__(self):
+        return 'Car(position=%d, speed=%d)' % (
+                self.position,
+                self.speed
+        )

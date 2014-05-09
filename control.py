@@ -47,14 +47,30 @@ def advance(car, lane, traffic_lights, time, delta_time):
         if can_advance(car, lane, traffic_lights, time):
             car.accelerate(delta_time)
         else:
-            acceleration = get_target_acceleration(car, next_car)
+            acceleration = get_target_acceleration(
+                car,
+                next_car.speed,
+                next_car.position - DISTANCE_MARGIN
+            )
             car.speed = car.speed + acceleration * delta_time
         car.advance(delta_time)
 
     else: # Traffic light ahead
-        pass
+        next_traffic_light = get_next_traffic_light(car, traffic_lights)
+        target_time = get_target_time(car,
+            next_traffic_light.position - car.position
+        )
 
-def get_target_acceleration(car, next_car):
-    return -math.pow(next_car.speed - car.speed, 2) / (
-            2 * (next_car.position - car.position + DISTANCE_MARGIN)
+def get_target_acceleration(car, target_speed, target_position):
+    return (math.pow(target_speed, 2) - math.pow(car.speed, 2)) / (
+            2 * (target_position - car.position))
+
+def get_target_time(car, distance):
+    distance_to_max_speed = ((math.pow(car.max_speed, 2) - math.pow(car.speed))
+        / (2 * car.acceleration)
+    )
+    if distance_to_max_speed > distance:
+# Cuadratica
+    else:
+# Cuadratica + MRU
 
