@@ -3,6 +3,7 @@ import car as car_module
 
 MPS_PER_METER = 3
 DISTANCE_MARGIN = 1
+MARGINAL_DISTANCE = 0.01
 
 def _consecutive_in_set(value, elements, key, compare, select):
     candidates = filter(lambda x: compare(key(x), value), elements)
@@ -35,12 +36,21 @@ def can_advance(car, lane, traffic_lights, time):
     pos = car.position
     next_car = get_next_car(car, lane)
 
-    if car.is_first_on_traffic_light():
+    if is_first_on_traffic_light(car, lane, traffic_lights):
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
-        return next_traffic_light.is_green(time) \
-            and (not next_car or rear(next_car, car.speed) > pos)
+        return ((
+                next_traffic_light.is_green(time)
+                and (not next_car or rear(next_car, car.speed) > pos)
+            ) or (
+                not next_traffic_light.is_green(time)
+                and next_traffic_light.position > pos
+            )
+        )
     else:
         return not next_car or rear(next_car, car.speed) > pos
+
+def is_first_on_traffic_light(car, lane, traffic_lights):
+    return not get_next_car_before_next_traffic_light(car, lane, traffic_lights)
 
 def get_next_car_before_next_traffic_light(car, lane, traffic_lights):
     next_traffic_light = get_next_traffic_light(car, traffic_lights)
@@ -55,25 +65,50 @@ def advance(car, lane, traffic_lights, time, delta_time):
     )
     if next_car:
         if can_advance(car, lane, traffic_lights, time):
-            car.accelerate(delta_time)
+            car.set_acceleration(car.max_acceleration, delta_time)
         else:
-            car.accelerate_to_reach(next_car.speed,
-                next_car.position - DISTANCE_MARGIN)
-    else: # Traffic light ahead
+            accelerate_car_to_reach(car, next_car.speed,
+                max(0,
+                    rear(next_car, car.speed) - car.position - DISTANCE_MARGIN
+                ),
+                delta_time
+            )
+    else:
+        # Traffic light ahead
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
-        target_time = get_target_time(car,
-            next_traffic_light.position - car.position
-        )
-        if next_traffic_light.is_green(target_time):
-            # Light will be green when we get there. Keep moving.
-            # TODO: Check if there will be a car after the traffic light that
-            # won't let this car cross it.
-            car.accelerate(delta_time)
+        if not next_traffic_light:
+            car.set_acceleration(car.max_acceleration, delta_time)
         else:
-            distance_to_traffic_light = ((car.position / 100 + 1)
-                * 100 - car.position)
-            car.accelerate_to_reach(0, distance_to_traffic_light)
+            target_time = get_target_time(car,
+                next_traffic_light.position - car.position
+            )
+            if next_traffic_light.is_green(time + target_time):
+                # Light will be green when we get there. Keep moving.
+                # TODO: Check if there will be a car after the traffic light
+                # that won't let this car cross it.
+                car.set_acceleration(car.max_acceleration, delta_time)
+            else:
+                distance_to_traffic_light = (next_traffic_light.position
+                    - car.position)
+                accelerate_car_to_reach(car, 0,
+                    max(0, distance_to_traffic_light - DISTANCE_MARGIN), delta_time
+                )
     car.advance(delta_time)
+    if not next_car:
+        next_traffic_light = get_next_traffic_light(car, traffic_lights)
+        if next_traffic_light:
+            if abs(car.position - next_traffic_light.position) < DISTANCE_MARGIN:
+                if car.acceleration < 0:
+                    car.position = next_traffic_light.position
+                    car.speed = 0
+
+def accelerate_car_to_reach(car, target_speed, distance, delta_time):
+    acceleration_to_reach = car.acceleration_to_reach(0,
+            distance, delta_time)
+    if abs(acceleration_to_reach) > car.max_acceleration:
+        car.set_acceleration(acceleration_to_reach, delta_time)
+    else:
+        car.set_acceleration(car.max_acceleration, delta_time)
 
 # Solves the time vs position function and returns the lowest positive value.
 # This function assumes that there will always be a positive solution.
@@ -88,13 +123,13 @@ def solve_quadratic_equation(a, b, c):
     return min(solution1, solution2)
 
 def solve_car_time_equation(car, distance):
-    return solve_quadratic_equation(1.0 / 2 * car.acceleration,
+    return solve_quadratic_equation(1.0 / 2 * car.max_acceleration,
         car.speed, -distance
     )
 
 def get_target_time(car, distance):
     distance_to_max_speed = ((math.pow(car.max_speed, 2) -
-        math.pow(car.speed, 2)) / (2 * car.acceleration)
+        math.pow(car.speed, 2)) / (2 * car.max_acceleration)
     )
     if distance_to_max_speed > distance:
 	target_time = solve_car_time_equation(car, distance)

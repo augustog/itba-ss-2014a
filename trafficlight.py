@@ -9,3 +9,7 @@ class TrafficLight(object):
     def is_green(self, time):
         return bool((self.state + int(time / 30)) % 2)
 
+    def pretty_print(self, time):
+        return 'Light %s at %d' % (
+            'ON' if self.is_green(time) else 'OFF', self.position
+        )

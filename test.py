@@ -110,5 +110,8 @@ class ControlTest(unittest.TestCase):
                 (20.0 / 9 + 200.0 / 3) < 0.0001)
         )
 
+    def test_advance(self):
+        pass
+
 if __name__ == '__main__':
     unittest.main()
