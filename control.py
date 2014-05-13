@@ -18,7 +18,8 @@ def get_next_traffic_light(car, traffic_lights):
     return _next_in_set(car.position, traffic_lights, get_position)
 
 def get_next_car(car, lane):
-    return _next_in_set(car.position, filter(lambda x: x is not car, lane.cars), get_position)
+    return _next_in_set(car.position,
+        filter(lambda x: x is not car, lane.cars), get_position)
 
 def can_advance(car, lane, traffic_lights, time):
     pos = car.position
@@ -27,7 +28,7 @@ def can_advance(car, lane, traffic_lights, time):
     if car.is_first_on_traffic_light():
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
         return next_traffic_light.is_green(time) \
-                and (not next_car or rear(next_car, car.speed) > pos)
+            and (not next_car or rear(next_car, car.speed) > pos)
     else:
         return not next_car or rear(next_car, car.speed) > pos
 
@@ -46,7 +47,8 @@ def advance(car, lane, traffic_lights, time, delta_time):
         if can_advance(car, lane, traffic_lights, time):
             car.accelerate(delta_time)
         else:
-            car.set_speed(next_car.speed, next_car.position - DISTANCE_MARGIN)
+            car.accelerate_to_reach(next_car.speed,
+                next_car.position - DISTANCE_MARGIN)
     else: # Traffic light ahead
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
         target_time = get_target_time(car,
@@ -58,8 +60,9 @@ def advance(car, lane, traffic_lights, time, delta_time):
             # won't let this car cross it.
             car.accelerate(delta_time)
         else:
-            distance_to_traffic_light = (car.position / 100 + 1) * 100 - car.position
-            car.set_speed(0, distance_to_traffic_light)
+            distance_to_traffic_light = ((car.position / 100 + 1)
+                * 100 - car.position)
+            car.accelerate_to_reach(0, distance_to_traffic_light)
     car.advance(delta_time)
 
 # Solves the time vs position function and returns the lowest positive value.
@@ -87,6 +90,7 @@ def get_target_time(car, distance):
 	target_time = solve_car_time_equation(car, distance)
     else:
         accelerating_time = solve_car_time_equation(car, distance_to_max_speed)
-        target_time = (distance - distance_to_max_speed) / car.max_speed + accelerating_time
+        target_time = ((distance - distance_to_max_speed)
+            / car.max_speed + accelerating_time)
     return target_time
 
