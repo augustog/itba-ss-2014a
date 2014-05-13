@@ -39,7 +39,6 @@ def get_next_car_before_next_traffic_light(car, lane, traffic_lights):
         (next_car.position < next_traffic_light.position and next_car))
 
 def advance(car, lane, traffic_lights, time, delta_time):
-
     next_car = get_next_car_before_next_traffic_light(
         car, lane, traffic_lights
     )
@@ -47,23 +46,21 @@ def advance(car, lane, traffic_lights, time, delta_time):
         if can_advance(car, lane, traffic_lights, time):
             car.accelerate(delta_time)
         else:
-            acceleration = get_target_acceleration(
-                car,
-                next_car.speed,
-                next_car.position - DISTANCE_MARGIN
-            )
-            car.speed = car.speed + acceleration * delta_time
-        car.advance(delta_time)
-
+            car.set_speed(next_car.speed, next_car.position - DISTANCE_MARGIN)
     else: # Traffic light ahead
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
         target_time = get_target_time(car,
             next_traffic_light.position - car.position
         )
-
-def get_target_acceleration(car, target_speed, target_position):
-    return (math.pow(target_speed, 2) - math.pow(car.speed, 2)) / (
-            2 * (target_position - car.position))
+        if next_traffic_light.is_green(target_time):
+            # Light will be green when we get there. Keep moving.
+            # TODO: Check if there will be a car after the traffic light that
+            # won't let this car cross it.
+            car.accelerate(delta_time)
+        else:
+            distance_to_traffic_light = (car.position / 100 + 1) * 100 - car.position
+            car.set_speed(0, distance_to_traffic_light)
+    car.advance(delta_time)
 
 # Solves the time vs position function and returns the lowest positive value.
 # This function assumes that there will always be a positive solution.

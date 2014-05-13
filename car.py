@@ -27,6 +27,14 @@ class Car(object):
         self.halted_on_light = False
         # TODO: Move the car according to speed and time and neighbours
 
+    def _get_target_acceleration(self, target_speed, target_position):
+        return (math.pow(target_speed, 2) - math.pow(self.speed, 2)) / (
+            2 * (target_position - self.position))
+
+    def set_speed(self, target_speed, distance, delta_time):
+        acceleration = get_target_acceleration(target_speed, distance)
+        self.speed = car.speed + acceleration * delta_time
+
     def __str__(self):
         return 'Car(position=%d, speed=%d)' % (
                 self.position,
