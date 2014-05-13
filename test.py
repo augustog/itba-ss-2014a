@@ -80,6 +80,27 @@ class ControlTest(unittest.TestCase):
         )
         self.lane.remove_car(other_car)
 
+    def test_solve_quadratic_equation_with_one_negative_solution(self):      
+        self.assertEquals(control.solve_quadratic_equation(1, -3, -10), 5)
+
+    def test_solve_quadratic_equation_with_one_solution(self):
+        self.assertEquals(control.solve_quadratic_equation(1, -8, 16), 4)
+
+    def test_solve_quadratic_equation_with_two_positive_solutions(self):
+        self.assertEquals(control.solve_quadratic_equation(1, -7, 10), 2)
+
+    def test_get_target_time_without_reaching_max_speed(self):
+        test_car = Car(0, 0, 5, 0)
+        self.assertTrue(
+            abs(control.get_target_time(test_car, 10) - 1.6108) < 0.0001
+        )
+
+    def test_get_target_time_reaching_max_speed(self):
+        test_car = Car(0, 0, 5, 0)
+        self.assertTrue(
+            abs(control.get_target_time(test_car, 100) -
+                (20.0 / 9 + 200.0 / 3) < 0.0001)
+        )
 
 if __name__ == '__main__':
     unittest.main()

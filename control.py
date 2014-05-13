@@ -65,12 +65,31 @@ def get_target_acceleration(car, target_speed, target_position):
     return (math.pow(target_speed, 2) - math.pow(car.speed, 2)) / (
             2 * (target_position - car.position))
 
+# Solves the time vs position function and returns the lowest positive value.
+# This function assumes that there will always be a positive solution.
+def solve_quadratic_equation(a, b, c):
+    discriminant = math.sqrt(math.pow(b, 2) - 4 * a * c)
+    solution1 = (-b + discriminant) / 2 / a
+    solution2 = (-b - discriminant) / 2 / a
+    if solution1 < 0:
+        return solution2
+    if solution2 < 0:
+        return solution1
+    return min(solution1, solution2)
+
+def solve_car_time_equation(car, distance):
+    return solve_quadratic_equation(1.0 / 2 * car.acceleration,
+        car.speed, -distance
+    )
+
 def get_target_time(car, distance):
-    distance_to_max_speed = ((math.pow(car.max_speed, 2) - math.pow(car.speed))
-        / (2 * car.acceleration)
+    distance_to_max_speed = ((math.pow(car.max_speed, 2) -
+        math.pow(car.speed, 2)) / (2 * car.acceleration)
     )
     if distance_to_max_speed > distance:
-# Cuadratica
+	target_time = solve_car_time_equation(car, distance)
     else:
-# Cuadratica + MRU
+        accelerating_time = solve_car_time_equation(car, distance_to_max_speed)
+        target_time = (distance - distance_to_max_speed) / car.max_speed + accelerating_time
+    return target_time
 
