@@ -4,9 +4,15 @@ import car as car_module
 MPS_PER_METER = 3
 DISTANCE_MARGIN = 1
 
+def _consecutive_in_set(value, elements, key, compare, select):
+    candidates = filter(lambda x: compare(key(x), value), elements)
+    return None if not len(candidates) else select(candidates, key=key)
+
+def _prev_in_set(value, elements, key):
+    return _consecutive_in_set(value, elements, key, lambda x, y: x <= y, max)
+
 def _next_in_set(value, elements, key):
-    next_elements = filter(lambda x: key(x) >= value, elements)
-    return None if not len(next_elements) else min(next_elements, key=key)
+    return _consecutive_in_set(value, elements, key, lambda x, y: x >= y, min)
 
 def rear(car, observer_speed):
     margin = math.ceil(observer_speed / MPS_PER_METER) or DISTANCE_MARGIN
@@ -16,6 +22,10 @@ get_position = lambda x: x.position
 
 def get_next_traffic_light(car, traffic_lights):
     return _next_in_set(car.position, traffic_lights, get_position)
+
+def get_prev_car(car, lane):
+    return _prev_in_set(car.position,
+        filter(lambda x: x is not car, lane.cars), get_position)
 
 def get_next_car(car, lane):
     return _next_in_set(car.position,
@@ -93,4 +103,15 @@ def get_target_time(car, distance):
         target_time = ((distance - distance_to_max_speed)
             / car.max_speed + accelerating_time)
     return target_time
+
+def can_change_lane(car, to_lane, traffic_lights):
+    next_car = get_next_car(car, to_lane)
+    side_car = get_prev_car(next_car, to_lane)
+
+def should_change_lane_to_move_faster(car, from_lane, target_lanes,
+    traffic_lights):
+    pass
+
+def should_change_lane_to_turn(car, from_lane, lanes, traffic_lights):
+    pass
 

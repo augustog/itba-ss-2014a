@@ -21,6 +21,14 @@ class ControlTest(unittest.TestCase):
             control._next_in_set(3, [1, 2, 3.5, 4, 5], key = lambda x: x), 3.5
         )
 
+    def test_prev_in_set(self):
+        self.assertEquals(
+            control._prev_in_set(3, [1, 2, 3, 4, 5], key = lambda x: x), 3
+        )
+        self.assertEquals(
+            control._prev_in_set(3, [1, 2.5, 3.5, 4, 5], key = lambda x: x), 2.5
+        )
+
     def test_cant_advance_on_traffic_light(self):
         red_light = TrafficLight(200, 'Red')
         self.assertFalse(
@@ -80,7 +88,7 @@ class ControlTest(unittest.TestCase):
         )
         self.lane.remove_car(other_car)
 
-    def test_solve_quadratic_equation_with_one_negative_solution(self):      
+    def test_solve_quadratic_equation_with_one_negative_solution(self):
         self.assertEquals(control.solve_quadratic_equation(1, -3, -10), 5)
 
     def test_solve_quadratic_equation_with_one_solution(self):
