@@ -111,7 +111,31 @@ class ControlTest(unittest.TestCase):
         )
 
     def test_advance(self):
-        pass
+        for i in range(1, 99):
+            test_car = Car(i, 0, 0, 0)
+            lane = Lane()
+            lane.add_car(test_car)
+            lights = [TrafficLight(100)]
+            for j in range(500):
+                control.advance(test_car, lane, lights, 30, 0.1)
+            self.assertTrue(test_car.position < 100,
+                    'Car starting at %d fail' % i)
+
+    def test_advance_with_car_in_front(self):
+        for i in range (1, 80):
+            test_car_1 = Car(i, 0, 0, 0)
+            test_car_2 = Car(i + 19, 0, 0, 0)
+            lane = Lane()
+            lane.add_car(test_car_1)
+            lane.add_car(test_car_2)
+            lights = [TrafficLight(100)]
+            for j in range(500):
+                control.advance(test_car_1, lane, lights, 30, 0.1)
+                control.advance(test_car_2, lane, lights, 30, 0.1)
+            self.assertTrue(test_car_1.position < 100,
+                    'First car at %d fail' % i)
+            self.assertTrue(test_car_2.position < 100,
+                    'Second car at %d fails' % (i + 19))
 
 if __name__ == '__main__':
     unittest.main()
