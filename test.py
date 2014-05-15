@@ -133,7 +133,8 @@ class ControlTest(unittest.TestCase):
                 control.advance(test_car_1, lane, lights, 30, 0.1)
                 control.advance(test_car_2, lane, lights, 30, 0.1)
             self.assertTrue(test_car_1.position < 100,
-                    'First car at %d fail' % i)
+                    'First car at %d fail, pos(car1) = %f, pos(car2) = %f'
+                    %(i, test_car_1.position, test_car_2.position))
             self.assertTrue(test_car_2.position < 100,
                     'Second car at %d fails' % (i + 19))
             self.assertTrue(test_car_1.position <= control.rear(
