@@ -53,16 +53,22 @@ lights = [
 ]
 
 
-car1 = car.Car(50, 0, 0, 0)
 car2 = car.Car(150, 0, 0, 0)
 car3 = car.Car(50, 0, 0, 0)
 car4 = car.Car(150, 0, 0, 0)
-lanes[0].add_car(car1)
+car1a = car.Car(50, 0, 0, 0)
+car1b = car.Car(60, 0, 10, 0)
+car1c = car.Car(70, 0, 0, 0)
+car1d = car.Car(90, 0, 0, 0)
+lanes[0].add_car(car1a)
+lanes[0].add_car(car1b)
+lanes[0].add_car(car1c)
+lanes[0].add_car(car1d)
 lanes[0].add_car(car2)
-lanes[2].add_car(car1)
-lanes[3].add_car(car1)
+lanes[2].add_car(car3)
+lanes[3].add_car(car4)
 
-cars = [car1, car2, car3, car4]
+cars = [car1a, car1b, car1c, car1d, car2, car3, car4]
 
 
 # Initialize
