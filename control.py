@@ -65,14 +65,19 @@ def advance(car, lane, traffic_lights, time, delta_time):
     )
     if next_car:
         if can_advance(car, lane, traffic_lights, time):
-            car.set_acceleration(car.max_acceleration, delta_time)
+            car_rear = rear(next_car, car.speed)
+            car_distance = car_rear - car.position
+            if car_distance < DISTANCE_MARGIN:
+                car.speed = 0
+                car.acceleration = 0
+            else:
+                accelerate_car_to_reach(car, next_car.speed,
+                    max(0, car_distance - DISTANCE_MARGIN),
+                    delta_time
+                )
         else:
-            accelerate_car_to_reach(car, next_car.speed,
-                max(0,
-                    rear(next_car, car.speed) - car.position - DISTANCE_MARGIN
-                ),
-                delta_time
-            )
+            car.speed = 0
+            car.acceleration = 0
     else:
         # Traffic light ahead
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
@@ -138,7 +143,7 @@ def get_target_time(car, distance):
         math.pow(car.speed, 2)) / (2 * car.max_acceleration)
     )
     if distance_to_max_speed > distance:
-	target_time = solve_car_time_equation(car, distance)
+        target_time = solve_car_time_equation(car, distance)
     else:
         accelerating_time = solve_car_time_equation(car, distance_to_max_speed)
         target_time = ((distance - distance_to_max_speed)
