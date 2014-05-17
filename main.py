@@ -130,17 +130,20 @@ def draw_cars(lanes):
             draw_car(car, direction, lane_number)
         lane_number += 1
 
-def advance_cars(lanes):
+def advance_cars(current_time, lanes):
     for lane in lanes:
         for car in lane.cars:
             control.advance(car, lane, lights, current_time, delta_t)
+    return current_time + delta_t
+
+trafficlight.TrafficLight.period_in_secs = 3
 
 while True:
     for event in pygame.event.get():
         if event.type == pg.QUIT:
             sys.exit()
     screen.fill(WHITE)
-    advance_cars(lanes)
+    current_time = advance_cars(current_time, lanes)
     draw_data()
     draw_lanes(lanes)
     draw_cars(lanes)
