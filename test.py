@@ -30,7 +30,7 @@ class ControlTest(unittest.TestCase):
         )
 
     def test_cant_advance_on_traffic_light(self):
-        red_light = TrafficLight(200, 'Red')
+        red_light = TrafficLight(200, initial_state='Red')
         self.assertFalse(
             control.can_advance(self.car, self.lane, [red_light], 0)
         )

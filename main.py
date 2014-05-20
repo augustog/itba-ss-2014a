@@ -43,13 +43,14 @@ lanes = [
     lane.Lane('SOUTH'),
     lane.Lane(),
     lane.Lane(),
+    lane.Lane(),
 ]
 
 lights = [
-    trafficlight.TrafficLight(100),
-    trafficlight.TrafficLight(200),
-    trafficlight.TrafficLight(300),
-    trafficlight.TrafficLight(400),
+    trafficlight.TrafficLight(100, 5),
+    trafficlight.TrafficLight(200, 5),
+    trafficlight.TrafficLight(300, 5),
+    trafficlight.TrafficLight(400, 5),
 ]
 
 
