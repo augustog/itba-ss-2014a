@@ -1,7 +1,7 @@
 import math
 import car as car_module
 
-MPS_PER_METER = 3
+MPS_PER_METER = 3.0
 DISTANCE_MARGIN = 1
 MARGINAL_DISTANCE = 0.01
 
@@ -152,12 +152,62 @@ def get_target_time(car, distance):
 
 def can_change_lane(car, to_lane, traffic_lights):
     next_car = get_next_car(car, to_lane)
-    side_car = get_prev_car(next_car, to_lane)
+    side_car = get_prev_car(car, to_lane)
+    next_traffic_light = get_next_traffic_light(car, traffic_lights)
+    if ((side_car and side_car.position >= rear(car, side_car.speed)) or
+           (next_car and car.position >= rear(next_car, car.speed)) or
+           (next_traffic_light and 
+           next_traffic_light.position - car.position < car.length * 1.5)):
+        # If the car changes lanes the car behind it will be too close
+        # or it will be too close to the next car.
+        # If the car is too close to the traffic light then it won't 
+        # change lane either.
+        return False
+    return True
 
+# target_lanes should be an array with exactly 2 lanes.
 def should_change_lane_to_move_faster(car, from_lane, target_lanes,
     traffic_lights):
-    pass
+    next_pos0 = False
+    next_pos1 = False
+    next_pos_current = False
+    if target_lanes[0]:
+        to_lane0 = can_change_lane(car, target_lanes[0], traffic_lights)
+        next_car = get_next_car(car, target_lanes[0])
+        if next_car:
+            next_pos0 = next_car.position
+    if target_lanes[1]:
+        to_lane1 = can_change_lane(car, target_lanes[1], traffic_lights)
+	next_car = get_next_car(car, target_lanes[1])
+        if next_car:
+            next_pos1 = next_car.position
+    next_car = get_next_car(car, from_lane)
+    if next_car:
+        next_pos_current = next_car.position
+    if not next_pos_current:
+        return False
+    if to_lane0 and to_lane1:
+        # Car can go to both lanes. Check which lane is better.
+        if not next_pos0:
+            return target_lanes[0]
+        if not next_pos1:
+            return target_lanes[1]
+        if next_pos_current > next_pos0 and next_pos_current > next_pos1:
+            return False
+        if next_pos0 > next_pos1:
+            return target_lanes[0]
+        return target_lanes[1]
+    if to_lane0:
+        if next_pos_current > next_pos0:
+            return False
+        return target_lanes[0]
+    if to_lane1:
+        if next_pos_current > next_pos1:
+            return False
+        return target_lanes[1]
+    return False
 
 def should_change_lane_to_turn(car, from_lane, lanes, traffic_lights):
     pass
+    
 

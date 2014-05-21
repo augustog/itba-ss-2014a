@@ -9,9 +9,11 @@ class Car(object):
 
     length = 3
 
-    def __init__(self, position, exit_road, speed, people_carried):
+    def __init__(self, position, exit_road, blocks_before_turn,
+            speed, people_carried):
         self.position = position
         self.exit_road = exit_road
+        self.blocks_before_turn = blocks_before_turn
         self.speed = speed
         self.people_carried = people_carried
         self.state = ADVANCE
