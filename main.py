@@ -9,6 +9,7 @@ import pygame.locals as pg
 import car
 import control
 import lane
+import source
 import trafficlight
 
 
@@ -24,23 +25,28 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
+STREETS = 5
+FIELD_LENGTH = STREETS * 100
+
 SCREEN_WIDTH = 1200
 START_MARGIN = 50
+SCALE_METERS_TO_SCREEN = (SCREEN_WIDTH - 2 * START_MARGIN) / FIELD_LENGTH
+
 TEXT_MARGIN = 10
 STATS_HEIGHT = 100
-CAR_WIDTH = 25
-CAR_HEIGHT = 40
-LANE_WIDTH = 40
-CAR_MARGIN = 9
+CAR_WIDTH = car.Car.length / 2 * SCALE_METERS_TO_SCREEN
+CAR_HEIGHT = car.Car.length * SCALE_METERS_TO_SCREEN
+
+LANE_WIDTH = 25
+CAR_MARGIN = (LANE_WIDTH - CAR_HEIGHT) / 2
 TRAFFIC_LIGHT_RADIUS = 10
 TRAFFIC_LIGHT_MARGIN = 20
-SCALE_METERS_TO_SCREEN = 10
 DOTTED_WIDTH = 2
 
 # Setup the Simulation
 
 current_time = 0
-delta_t = 0.1
+delta_t = 0.01
 
 lanes = [
     lane.Lane('SOUTH'),
@@ -50,31 +56,25 @@ lanes = [
     lane.Lane(),
 ]
 
-lights = [
-    trafficlight.TrafficLight(100, 5),
-    trafficlight.TrafficLight(200, 5),
-    trafficlight.TrafficLight(300, 5),
-    trafficlight.TrafficLight(400, 5),
-]
+lights = []
+cars = []
 
+for i in range(1, STREETS):
+    lights.append(trafficlight.TrafficLight(i * 100, 5))
 
-car2 = car.Car(10, 0, 0, 0)
-car3 = car.Car(50, 0, 0, 0)
-car4 = car.Car(40, 0, 0, 0)
-car1a = car.Car(50, 0, 0, 0)
-car1b = car.Car(60, 0, 10, 0)
-car1c = car.Car(70, 0, 0, 0)
-car1d = car.Car(90, 0, 0, 0)
-lanes[0].add_car(car1a)
-lanes[0].add_car(car1b)
-lanes[0].add_car(car1c)
-lanes[0].add_car(car1d)
-lanes[0].add_car(car2)
-lanes[2].add_car(car3)
-lanes[3].add_car(car4)
-
-cars = [car1a, car1b, car1c, car1d, car2, car3, car4]
-
+sources = {
+    'car': [
+        {
+            'NORTH': source.Source(2),
+            'SOUTH': source.Source(2)
+        }
+        for i in range(1, STREETS)
+    ],
+    'lanes': [
+        source.Source(3)
+        for i in range(len(lanes))
+    ]
+}
 
 # Initialize
 
@@ -165,6 +165,7 @@ while True:
     draw_data()
     draw_lanes(lanes)
     draw_cars(lanes)
+    control.make_cars_appear(lanes, sources, lights, current_time, delta_t)
 
     pygame.display.update()
 

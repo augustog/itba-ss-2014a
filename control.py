@@ -1,4 +1,6 @@
 import math
+import random
+
 import car as car_module
 
 MPS_PER_METER = 3
@@ -164,17 +166,18 @@ def should_change_lane_to_turn(car, from_lane, lanes, traffic_lights):
 car_lane = lambda y: lambda x: not x.exclusive and x.way == y
 
 def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
-    for source, light in izip(sources['car'], traffic_lights):
+    for source, light in zip(sources['car'], traffic_lights):
         for direction in ('NORTH', 'SOUTH'):
             src = source[direction]
             if not light.is_green(time):
                 if src.chances_to_appear(delta_time):
                     # TODO: Calculate exit_road and people_carried
-                    new_car = car.Car(light.position, 0, 0, 0)
+                    new_car = car_module.Car(light.position, 0, 0, 0)
                     targets = filter(car_lane(direction), lanes)
                     targets = filter(
-                        lambda x: rear(get_next_car(new_car, x), 0)
-                            > new_car.position + DISTANCE_MARGIN, targets
+                        lambda x: not get_next_car(new_car, x) or
+                            rear(get_next_car(new_car, x), 0)
+                                > new_car.position + DISTANCE_MARGIN, targets
                     )
                     if targets:
                         random.choice(targets).add_car(new_car)
@@ -183,9 +186,10 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
         src = sources['lanes'][index]
         if src.chances_to_appear(delta_time):
             # TODO: Calculate exit_road and people_carried
-            new_car = car.Car(0, 0, 0, 0)
-            if (rear(get_next_car(new_car, lane), 0)
-                > new_car.position + DISTANCE_MARGIN):
+            new_car = car_module.Car(0, 0, 0, 0)
+            next_car = get_next_car(new_car, lane)
+            if not next_car or (
+                rear(next_car, 0) > new_car.position + DISTANCE_MARGIN):
                 lane.add_car(new_car)
                 src.reset()
 
