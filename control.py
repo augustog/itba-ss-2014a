@@ -161,3 +161,34 @@ def should_change_lane_to_move_faster(car, from_lane, target_lanes,
 def should_change_lane_to_turn(car, from_lane, lanes, traffic_lights):
     pass
 
+car_lane = lambda y: lambda x: not x.exclusive and x.way == y
+
+def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
+    for source, light in izip(sources['car'], traffic_lights):
+        for direction in ('NORTH', 'SOUTH'):
+            src = source[direction]
+            if not light.is_green(time):
+                if src.chances_to_appear(delta_time):
+                    # TODO: Calculate exit_road and people_carried
+                    new_car = car.Car(light.position, 0, 0, 0)
+                    targets = filter(car_lane(direction), lanes)
+                    targets = filter(
+                        lambda x: rear(get_next_car(new_car, x), 0)
+                            > new_car.position + DISTANCE_MARGIN, targets
+                    )
+                    if targets:
+                        random.choice(targets).add_car(new_car)
+                        src.reset()
+    for index, lane in enumerate(lanes):
+        src = sources['lanes'][index]
+        if src.chances_to_appear(delta_time):
+            # TODO: Calculate exit_road and people_carried
+            new_car = car.Car(0, 0, 0, 0)
+            if rear(get_next_car(new_car, lane), 0)
+                > new_car.position + DISTANCE_MARGIN:
+                lane.add_car(new_car)
+                src.reset()
+
+def make_buses_appear(lanes, agenda, time, delta_time):
+    pass
+
