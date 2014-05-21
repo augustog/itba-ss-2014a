@@ -48,7 +48,7 @@ DOTTED_WIDTH = 2
 # Setup the Simulation
 
 current_time = 0
-delta_t = 0.1
+delta_t = 0.05
 
 lanes = [
     lane.Lane('SOUTH'),
@@ -62,7 +62,7 @@ lights = []
 cars = []
 
 for i in range(1, STREETS):
-    lights.append(trafficlight.TrafficLight(i * 100, 5))
+    lights.append(trafficlight.TrafficLight(i * 100, 30))
 
 sources = {
     'car': [
