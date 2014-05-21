@@ -142,5 +142,9 @@ class ControlTest(unittest.TestCase):
                 'First car ended up further than expected'
             )
 
+    def test_appear_cars_between_two_lanes(self):
+        lanes = [Lane(), Lane()]
+        lights = [TrafficLight(100)]
+
 if __name__ == '__main__':
     unittest.main()

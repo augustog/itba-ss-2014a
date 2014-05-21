@@ -184,8 +184,8 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
         if src.chances_to_appear(delta_time):
             # TODO: Calculate exit_road and people_carried
             new_car = car.Car(0, 0, 0, 0)
-            if rear(get_next_car(new_car, lane), 0)
-                > new_car.position + DISTANCE_MARGIN:
+            if (rear(get_next_car(new_car, lane), 0)
+                > new_car.position + DISTANCE_MARGIN):
                 lane.add_car(new_car)
                 src.reset()
 
