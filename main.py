@@ -1,3 +1,5 @@
+from __future__ import division
+
 # Standard library
 import sys
 
@@ -46,7 +48,7 @@ DOTTED_WIDTH = 2
 # Setup the Simulation
 
 current_time = 0
-delta_t = 0.01
+delta_t = 0.1
 
 lanes = [
     lane.Lane('SOUTH'),
@@ -118,8 +120,8 @@ def draw_lanes(lanes):
         pygame.draw.circle(screen,
             GREEN if light.is_green(current_time) else RED,
             (
-                START_MARGIN + light.position * SCALE_METERS_TO_SCREEN,
-                y + TRAFFIC_LIGHT_MARGIN
+                int(START_MARGIN + light.position * SCALE_METERS_TO_SCREEN),
+                int(y + TRAFFIC_LIGHT_MARGIN)
             ),
             TRAFFIC_LIGHT_RADIUS
         )

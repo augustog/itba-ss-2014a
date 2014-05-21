@@ -40,33 +40,40 @@ def can_advance(car, lane, traffic_lights, time):
 
     if is_first_on_traffic_light(car, lane, traffic_lights):
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
-        return ((
-                next_traffic_light.is_green(time)
-                and (not next_car or rear(next_car, car.speed) > pos)
-            ) or (
-                not next_traffic_light.is_green(time)
-                and next_traffic_light.position > pos
-            )
-        )
+        if not next_traffic_light:
+            return True
+        if next_traffic_light.is_green(time):
+            return not next_car or rear(next_car, car.speed) > pos
+        else:
+            return next_traffic_light.position > pos
     else:
-        return not next_car or rear(next_car, car.speed) > pos
+        if not next_car:
+            return True
+        return rear(next_car, car.speed) > pos
 
 def is_first_on_traffic_light(car, lane, traffic_lights):
-    return not get_next_car_before_next_traffic_light(car, lane, traffic_lights)
+    if get_next_car_before_next_traffic_light(car, lane, traffic_lights):
+        return False
+    return True
 
 def get_next_car_before_next_traffic_light(car, lane, traffic_lights):
     next_traffic_light = get_next_traffic_light(car, traffic_lights)
     next_car = get_next_car(car, lane)
-
-    return next_car and ((not next_traffic_light and next_car) or
-        (next_car.position < next_traffic_light.position and next_car))
+    if not next_car:
+        return None
+    else:
+        if not next_traffic_light:
+            return next_car
+        if next_car.position <= next_traffic_light.position:
+            return next_car
+        return None
 
 def advance(car, lane, traffic_lights, time, delta_time):
     next_car = get_next_car_before_next_traffic_light(
         car, lane, traffic_lights
     )
-    if next_car:
-        if can_advance(car, lane, traffic_lights, time):
+    if can_advance(car, lane, traffic_lights, time):
+        if next_car:
             car_rear = rear(next_car, car.speed)
             car_distance = car_rear - car.position
             if car_distance < DISTANCE_MARGIN:
@@ -78,33 +85,36 @@ def advance(car, lane, traffic_lights, time, delta_time):
                     delta_time
                 )
         else:
-            car.speed = 0
-            car.acceleration = 0
-    else:
-        # Traffic light ahead
-        next_traffic_light = get_next_traffic_light(car, traffic_lights)
-        if not next_traffic_light:
-            car.set_acceleration(car.max_acceleration, delta_time)
-        else:
-            target_time = get_target_time(car,
-                next_traffic_light.position - car.position
-            )
-            distance_to_traffic_light = (next_traffic_light.position
-                - car.position)
-            if distance_to_traffic_light > DISTANCE_MARGIN:
-                if next_traffic_light.is_green(time + target_time):
-                    # Light will be green when we get there. Keep moving.
-                    # TODO: Check if there will be a car after the traffic light
-                    # that won't let this car cross it.
+            # Traffic light ahead, or nothing
+            next_traffic_light = get_next_traffic_light(car, traffic_lights)
+            if not next_traffic_light:
+                car.set_acceleration(car.max_acceleration, delta_time)
+            else:
+                target_time = get_target_time(car,
+                    next_traffic_light.position - car.position
+                )
+                if target_time < 0.1 and next_traffic_light.is_green(time):
                     car.set_acceleration(car.max_acceleration, delta_time)
                 else:
-                    accelerate_car_to_reach(car, 0,
-                        max(0, distance_to_traffic_light - DISTANCE_MARGIN),
-                        delta_time
-                    )
-            else:
-                car.speed = 0
-                car.acceleration = 0
+                    distance_to_traffic_light = (next_traffic_light.position
+                        - car.position)
+                    if distance_to_traffic_light > DISTANCE_MARGIN:
+                        if next_traffic_light.is_green(time + target_time):
+                            # Light will be green when we get there. Keep moving.
+                            # TODO: Check if there will be a car after the traffic light
+                            # that won't let this car cross it.
+                            car.set_acceleration(car.max_acceleration, delta_time)
+                        else:
+                            accelerate_car_to_reach(car, 0,
+                                max(0, distance_to_traffic_light - DISTANCE_MARGIN),
+                                delta_time
+                            )
+                    else:
+                        car.speed = 0
+                        car.acceleration = 0
+    else:
+        car.speed = 0
+        car.acceleration = 0
 
     car.advance(delta_time)
     if not next_car:
@@ -172,7 +182,10 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
             if not light.is_green(time):
                 if src.chances_to_appear(delta_time):
                     # TODO: Calculate exit_road and people_carried
-                    new_car = car_module.Car(light.position, 0, 0, 0)
+                    new_car = car_module.Car(
+                        light.position + car_module.Car.length
+                        + DISTANCE_MARGIN, 0, 0, 0
+                    )
                     targets = filter(car_lane(direction), lanes)
                     targets = filter(
                         lambda x: not get_next_car(new_car, x) or
