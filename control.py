@@ -161,3 +161,6 @@ def should_change_lane_to_move_faster(car, from_lane, target_lanes,
 def should_change_lane_to_turn(car, from_lane, lanes, traffic_lights):
     pass
 
+def bus_stop(bus, stop):
+    bus.pick_up_people(stop.bus_arrived(bus))
+
