@@ -1,6 +1,7 @@
 import math
 import random
 
+import bus as bus_module
 import car as car_module
 
 MPS_PER_METER = 3
@@ -216,7 +217,7 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
                         src.reset()
     for index, lane in enumerate(lanes):
         src = sources['lanes'][index]
-        if src.chances_to_appear(delta_time):
+        if not lane.exclusive and src.chances_to_appear(delta_time):
             new_car = car_module.Car(0, 0, 0, 0)
             next_car = get_next_car(new_car, lane)
             if not next_car or (
@@ -226,8 +227,18 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
                 src.reset()
     return new_cars
 
-def make_buses_appear(lanes, agenda, time, delta_time):
-    pass
+def make_buses_appear(lanes, sources, time, delta_time):
+    new_buses = []
+    for index, source in enumerate(sources['bus']):
+        if source and source.chances_to_appear(delta_time):
+            new_bus = bus_module.Bus(None, 0, 0)
+            next_car = get_next_car(new_bus, lanes[index])
+            if not next_car or (
+                    rear(next_car, 0) > new_bus.position + DISTANCE_MARGIN):
+                lanes[index].add_car(new_bus)
+                new_buses.append(new_bus)
+                source.reset()
+    return new_buses
 
 def remove_old_cars(lanes, start, end):
     removed = []

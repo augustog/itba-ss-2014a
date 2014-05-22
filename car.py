@@ -10,6 +10,7 @@ class Car(object):
 
     def __init__(self, position, exit_road, speed, people_carried):
         self.position = position
+        self.start_time = 0
         self.exit_road = exit_road
         self.speed = speed
         self.people_carried = people_carried
