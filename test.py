@@ -5,6 +5,9 @@ import control
 from car import Car
 from lane import Lane
 from trafficlight import TrafficLight
+from bus import Bus
+from bus_line import BusLine
+from bus_stop import BusStop
 
 class ControlTest(unittest.TestCase):
 
@@ -285,6 +288,37 @@ class ControlTest(unittest.TestCase):
         light = TrafficLight(100)
         self.assertFalse(control.should_change_lane_to_move_faster(car1, lane1,
             [lane0, lane2], [light]))
+
+    def test_bus_arrived_at_stop_at_full_capacity(self):
+        lane = Lane()
+        stop = BusStop(lane, 30, 10)
+        line = BusLine([stop], 0, 500)
+        bus = Bus(line, 10, 100)
+        control.bus_stop(bus, stop)
+        self.assertEquals(bus.people_carried, 100)
+        self.assertEquals(stop.people, 10)
+
+    def test_bus_arrived_and_people_were_left_at_stop(self):
+        lane = Lane()
+        stop = BusStop(lane, 30, 10)
+        line = BusLine([stop], 0, 500)
+        bus = Bus(line, 10, 93)
+        control.bus_stop(bus, stop)
+        self.assertEquals(bus.people_carried, 100)
+        self.assertEquals(stop.people, 3)
+
+    def test_bus_arrived_and_everybody_got_on_the_bus(self):
+        lane = Lane()
+        stop = BusStop(lane, 30, 10)
+        line = BusLine([stop], 0, 500)
+        bus = Bus(line, 10, 10)
+        control.bus_stop(bus, stop)
+        self.assertEquals(bus.people_carried, 20)
+        self.assertEquals(stop.people, 0)
+
+    def test_appear_cars_between_two_lanes(self):
+        lanes = [Lane(), Lane()]
+        lights = [TrafficLight(100)]
 
 if __name__ == '__main__':
     unittest.main()

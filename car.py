@@ -6,7 +6,6 @@ CHANGING_LANE = 'Cambiando de carril'
 class Car(object):
     max_speed = 15
     max_acceleration = 1.5
-
     length = 3
 
     def __init__(self, position, exit_road, blocks_before_turn,
