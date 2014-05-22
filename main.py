@@ -1,3 +1,5 @@
+from __future__ import division
+
 # Standard library
 import sys
 
@@ -9,6 +11,7 @@ import pygame.locals as pg
 import car
 import control
 import lane
+import source
 import trafficlight
 
 
@@ -22,54 +25,58 @@ DOTTED_LENGTH = 50
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+
+STREETS = 5
+FIELD_LENGTH = STREETS * 100
 
 SCREEN_WIDTH = 1200
 START_MARGIN = 50
+SCALE_METERS_TO_SCREEN = (SCREEN_WIDTH - 2 * START_MARGIN) / FIELD_LENGTH
+
+TEXT_MARGIN = 10
 STATS_HEIGHT = 100
-CAR_WIDTH = 25
-CAR_HEIGHT = 40
-LANE_WIDTH = 40
-CAR_MARGIN = 9
-SCALE_METERS_TO_SCREEN = 10
+CAR_WIDTH = car.Car.length / 2 * SCALE_METERS_TO_SCREEN
+CAR_HEIGHT = car.Car.length * SCALE_METERS_TO_SCREEN
+
+LANE_WIDTH = 25
+CAR_MARGIN = (LANE_WIDTH - CAR_HEIGHT) / 2
+TRAFFIC_LIGHT_RADIUS = 10
+TRAFFIC_LIGHT_MARGIN = 20
 DOTTED_WIDTH = 2
 
 # Setup the Simulation
 
 current_time = 0
-delta_t = 0.1
+delta_t = 0.05
 
 lanes = [
     lane.Lane('SOUTH'),
     lane.Lane('SOUTH'),
     lane.Lane(),
     lane.Lane(),
+    lane.Lane(),
 ]
 
-lights = [
-    trafficlight.TrafficLight(100),
-    trafficlight.TrafficLight(200),
-    trafficlight.TrafficLight(300),
-    trafficlight.TrafficLight(400),
-]
+lights = []
+cars = []
 
+for i in range(1, STREETS):
+    lights.append(trafficlight.TrafficLight(i * 100, 30))
 
-car2 = car.Car(150, 0, 0, 0)
-car3 = car.Car(50, 0, 0, 0)
-car4 = car.Car(150, 0, 0, 0)
-car1a = car.Car(50, 0, 0, 0)
-car1b = car.Car(60, 0, 10, 0)
-car1c = car.Car(70, 0, 0, 0)
-car1d = car.Car(90, 0, 0, 0)
-lanes[0].add_car(car1a)
-lanes[0].add_car(car1b)
-lanes[0].add_car(car1c)
-lanes[0].add_car(car1d)
-lanes[0].add_car(car2)
-lanes[2].add_car(car3)
-lanes[3].add_car(car4)
-
-cars = [car1a, car1b, car1c, car1d, car2, car3, car4]
-
+sources = {
+    'car': [
+        {
+            'NORTH': source.Source(2),
+            'SOUTH': source.Source(2)
+        }
+        for i in range(1, STREETS)
+    ],
+    'lanes': [
+        source.Source(3)
+        for i in range(len(lanes))
+    ]
+}
 
 # Initialize
 
@@ -90,8 +97,11 @@ def draw_dotted_line(from_x, to_x, y, color):
             screen, color, (i, y), (i + DOTTED_LENGTH / 2, y), DOTTED_WIDTH
         )
 
+font = pygame.font.Font(None, 24)
+
 def draw_data():
-    pass
+    time_text = font.render('Time: %.2f' % current_time, True, BLACK)
+    screen.blit(time_text, (TEXT_MARGIN, TEXT_MARGIN))
 
 def draw_lanes(lanes):
     first = True
@@ -106,6 +116,16 @@ def draw_lanes(lanes):
         y += LANE_WIDTH
         first = False
     draw_line(STRONG, start, end, y)
+    for light in lights:
+        pygame.draw.circle(screen,
+            GREEN if light.is_green(current_time) else RED,
+            (
+                int(START_MARGIN + light.position * SCALE_METERS_TO_SCREEN),
+                int(y + TRAFFIC_LIGHT_MARGIN)
+            ),
+            TRAFFIC_LIGHT_RADIUS
+        )
+
 
 def get_color(car):
     return RED
@@ -117,7 +137,7 @@ def draw_car(car, direction, lane_number):
         pygame.Rect(
             start + car.position * SCALE_METERS_TO_SCREEN * direction,
             STATS_HEIGHT + LANE_WIDTH * lane_number + CAR_MARGIN,
-            CAR_HEIGHT,
+            CAR_HEIGHT * -1 * direction,
             CAR_WIDTH
         )
     )
@@ -147,6 +167,7 @@ while True:
     draw_data()
     draw_lanes(lanes)
     draw_cars(lanes)
+    control.make_cars_appear(lanes, sources, lights, current_time, delta_t)
 
     pygame.display.update()
 
