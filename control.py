@@ -194,12 +194,12 @@ def bus_stop(bus, stop):
 car_lane = lambda y: lambda x: not x.exclusive and x.way == y
 
 def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
+    new_cars = []
     for source, light in zip(sources['car'], traffic_lights):
         for direction in ('NORTH', 'SOUTH'):
             src = source[direction]
             if not light.is_green(time):
                 if src.chances_to_appear(delta_time):
-                    # TODO: Calculate exit_road and people_carried
                     new_car = car_module.Car(
                         light.position + car_module.Car.length
                         + DISTANCE_MARGIN, 0, 0, 0
@@ -211,19 +211,30 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
                                 > new_car.position + DISTANCE_MARGIN, targets
                     )
                     if targets:
+                        new_cars.append(new_car)
                         random.choice(targets).add_car(new_car)
                         src.reset()
     for index, lane in enumerate(lanes):
         src = sources['lanes'][index]
         if src.chances_to_appear(delta_time):
-            # TODO: Calculate exit_road and people_carried
             new_car = car_module.Car(0, 0, 0, 0)
             next_car = get_next_car(new_car, lane)
             if not next_car or (
                 rear(next_car, 0) > new_car.position + DISTANCE_MARGIN):
                 lane.add_car(new_car)
+                new_cars.append(new_car)
                 src.reset()
+    return new_cars
 
 def make_buses_appear(lanes, agenda, time, delta_time):
     pass
+
+def remove_old_cars(lanes, start, end):
+    removed = []
+    for lane in lanes:
+        for car in lane.cars:
+            if start > car.position or end < car.position:
+                removed.append(car)
+                lane.remove_car(car)
+    return removed
 

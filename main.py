@@ -1,6 +1,8 @@
 from __future__ import division
 
 # Standard library
+import math
+import random
 import sys
 
 # Third party library
@@ -28,14 +30,15 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
 STREETS = 5
-FIELD_LENGTH = STREETS * 100
+ROAD_LENGTH = STREETS * 100
 
 SCREEN_WIDTH = 1200
 START_MARGIN = 50
-SCALE_METERS_TO_SCREEN = (SCREEN_WIDTH - 2 * START_MARGIN) / FIELD_LENGTH
+SCALE_METERS_TO_SCREEN = (SCREEN_WIDTH - 2 * START_MARGIN) / ROAD_LENGTH
 
 TEXT_MARGIN = 10
-STATS_HEIGHT = 100
+TEXT_LINE_MARGIN = 5
+STATS_HEIGHT = 150
 CAR_WIDTH = car.Car.length / 2 * SCALE_METERS_TO_SCREEN
 CAR_HEIGHT = car.Car.length * SCALE_METERS_TO_SCREEN
 
@@ -50,6 +53,16 @@ DOTTED_WIDTH = 2
 current_time = 0
 delta_t = 0.05
 
+people_in_private_cars = 0
+people_in_public_bus = 0
+
+hours_spent_private_cars = 0
+hours_spend_public_bus = 0
+
+cars_finished_moving = 0
+people_finished_moving_private = 0
+people_finished_moving_public = 0
+
 lanes = [
     lane.Lane('SOUTH'),
     lane.Lane('SOUTH'),
@@ -60,6 +73,7 @@ lanes = [
 
 lights = []
 cars = []
+buses = []
 
 for i in range(1, STREETS):
     lights.append(trafficlight.TrafficLight(i * 100, 30))
@@ -100,8 +114,46 @@ def draw_dotted_line(from_x, to_x, y, color):
 font = pygame.font.Font(None, 24)
 
 def draw_data():
+    y = TEXT_MARGIN
     time_text = font.render('Time: %.2f' % current_time, True, BLACK)
-    screen.blit(time_text, (TEXT_MARGIN, TEXT_MARGIN))
+    screen.blit(time_text, (TEXT_MARGIN, y))
+    y += time_text.get_height() + TEXT_LINE_MARGIN
+    time_text = font.render('Cars: %d, Buses: %d' % (
+        len(cars), len(buses)
+    ), True, BLACK)
+    screen.blit(time_text, (TEXT_MARGIN, y))
+    y += time_text.get_height() + TEXT_LINE_MARGIN
+    time_text = font.render('People on cars: %d, People on buses: %d' % (
+        people_in_private_cars, people_in_public_bus
+    ), True, BLACK)
+    screen.blit(time_text, (TEXT_MARGIN, y))
+    y += time_text.get_height() + TEXT_LINE_MARGIN
+    time_text = font.render('People that finished traveling in cars: %d'
+        ', in bus: %d, total: %d' % (
+        people_finished_moving_private,
+        people_finished_moving_public,
+        people_finished_moving_public + people_finished_moving_private
+    ), True, BLACK)
+    screen.blit(time_text, (TEXT_MARGIN, y))
+    y += time_text.get_height() + TEXT_LINE_MARGIN
+    time_text = font.render('Hours on cars: %d, Hours on buses: %d' % (
+        hours_spent_private_cars, hours_spend_public_bus
+    ), True, BLACK)
+    screen.blit(time_text, (TEXT_MARGIN, y))
+    y += time_text.get_height() + TEXT_LINE_MARGIN
+    if people_in_private_cars > 0 and people_in_public_bus > 0:
+        time_text = font.render('Average time spent in traffic: %.2f, '
+            'Average on buses: %.2f, Average on cars: %.2f' % (
+            (hours_spend_public_bus + hours_spent_private_cars) /
+            (people_finished_moving_private + people_finished_moving_public
+                + people_in_public_bus + people_in_private_cars),
+            (hours_spent_private_cars /
+                (people_in_private_cars + people_finished_moving_private)),
+            (hours_spend_public_bus /
+                (people_in_public_bus + people_finished_moving_public)),
+        ), True, BLACK)
+        screen.blit(time_text, (TEXT_MARGIN, y))
+        y += time_text.get_height() + TEXT_LINE_MARGIN
 
 def draw_lanes(lanes):
     first = True
@@ -156,7 +208,22 @@ def advance_cars(current_time, lanes):
             control.advance(car, lane, lights, current_time, delta_t)
     return current_time + delta_t
 
-trafficlight.TrafficLight.period_in_secs = 3
+def get_random_people_for_private_car():
+    p = random.random()
+    if p < 0.5:
+        return 1
+    if p < 0.8:
+        return 2
+    return math.ceil((p - 0.8) * 4) + 2
+
+def get_exit_road(car):
+    p = random.random()
+    if p > 0.5:
+        return None
+    exit = math.ceil(p * 5)
+    if exit * 100 > car.position:
+        return exit
+    return None
 
 while True:
     for event in pygame.event.get():
@@ -167,7 +234,23 @@ while True:
     draw_data()
     draw_lanes(lanes)
     draw_cars(lanes)
-    control.make_cars_appear(lanes, sources, lights, current_time, delta_t)
+    new_cars = control.make_cars_appear(
+        lanes, sources, lights, current_time, delta_t
+    )
+    for car in new_cars:
+        car.people_carried += get_random_people_for_private_car()
+        people_in_private_cars += car.people_carried
+        car.exit_road = get_exit_road(car)
+        cars.append(car)
+
+    for car in control.remove_old_cars(lanes, 0, ROAD_LENGTH):
+        people_in_private_cars -= car.people_carried
+        cars.remove(car)
+        cars_finished_moving += 1
+        people_finished_moving_private += car.people_carried
+
+    hours_spend_public_bus += delta_t * people_in_public_bus
+    hours_spent_private_cars += delta_t * people_in_private_cars
 
     pygame.display.update()
 
