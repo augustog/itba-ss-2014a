@@ -85,8 +85,8 @@ lanes = [
     lane.Lane(),
 ]
 
-lanes[2].exclusive = True
 lanes[3].exclusive = True
+lanes[4].exclusive = True
 
 lights = []
 cars = []
@@ -109,8 +109,8 @@ sources = {
     ],
     'bus': [ None for i in range(len(lanes)) ]
 }
-sources['bus'][2] = source.Source(3)
 sources['bus'][3] = source.Source(3)
+sources['bus'][4] = source.Source(3)
 
 # Initialize
 
