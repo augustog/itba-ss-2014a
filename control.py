@@ -3,9 +3,12 @@ import random
 
 import bus as bus_module
 import car as car_module
+import bus_line
+import bus_stop as bus_stop_module
 
 MPS_PER_METER = 3.0
 DISTANCE_MARGIN = 1
+BUS_STOP_MARGIN = 5
 MARGINAL_DISTANCE = 0.01
 
 def _consecutive_in_set(value, elements, key, compare, select):
@@ -26,6 +29,9 @@ get_position = lambda x: x.position
 
 def get_next_traffic_light(car, traffic_lights):
     return _next_in_set(car.position, traffic_lights, get_position)
+
+def get_next_bus_stop(bus):
+    return _next_in_set(bus.position, bus.line.bus_stops, get_position)
 
 def get_prev_car(car, lane):
     return _prev_in_set(car.position,
@@ -139,6 +145,14 @@ def advance(car, lane, traffic_lights, time, delta_time):
         car.speed = 0
         car.acceleration = 0
 
+    if (isinstance(car, bus_module.Bus) and
+            can_advance(car, lane, traffic_lights, time)):
+        next_stop = get_next_bus_stop(car)
+        if next_stop:
+            distance = next_stop.position - car.position
+            if distance < BUS_STOP_MARGIN:
+                accelerate_car_to_reach(car, 0, distance, delta_time)
+    
     car.advance(delta_time)
 
 def accelerate_car_to_reach(car, target_speed, distance, delta_time):
@@ -307,8 +321,10 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
 def make_buses_appear(lanes, sources, time, delta_time):
     new_buses = []
     for index, source in enumerate(sources['bus']):
+        stops = [bus_stop_module.BusStop(lanes[index], 40, 0), bus_stop_module.BusStop(lanes[index], 140, 0), bus_stop_module.BusStop(lanes[index], 240, 0), bus_stop_module.BusStop(lanes[index], 340, 0)]
         if source and source.chances_to_appear(delta_time):
-            new_bus = bus_module.Bus(None, 0, 0)
+            new_bus = bus_module.Bus(bus_line.BusLine(stops, 0, 0),
+                                        0, 0)
             next_car = get_next_car(new_bus, lanes[index])
             if not next_car or (
                     rear(next_car, 0) > new_bus.position + DISTANCE_MARGIN):
@@ -317,12 +333,19 @@ def make_buses_appear(lanes, sources, time, delta_time):
                 source.reset()
     return new_buses
 
-def remove_old_cars(lanes, start, end):
+def remove_old_vehicles(lanes, start, end, vehicleType):
     removed = []
     for lane in lanes:
-        for car in lane.cars:
-            if start > car.position or end < car.position:
-                removed.append(car)
-                lane.remove_car(car)
+        for vehicle in lane.cars:
+            if start > vehicle.position or end < vehicle.position:
+                if type(vehicle) is vehicleType:
+                    removed.append(vehicle)
+                    lane.remove_car(vehicle)
     return removed
+
+def remove_old_cars(lanes, start, end):
+    return remove_old_vehicles(lanes, start, end, car_module.Car)
+
+def remove_old_buses(lanes, start, end):
+    return remove_old_vehicles(lanes, start, end, bus_module.Bus)
 

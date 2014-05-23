@@ -11,6 +11,8 @@ import pygame.locals as pg
 
 # First party
 import bus
+import bus_line
+import bus_stop
 import car
 import control
 import lane
@@ -163,10 +165,10 @@ def draw_data():
     y += time_text.get_height() + TEXT_LINE_MARGIN
     if people_finished_moving_private > 0:
         time_text = font.render('Average time spent in traffic: %.2f, '
-            'Average on buses: NaN, Average on cars: %.2f' % (
+            'Average on buses: %.2f, Average on cars: %.2f' % (
             (hours_spent_public_bus + hours_spent_private_cars) /
             (people_finished_moving_private + people_finished_moving_public),
-            # (hours_spent_public_bus / people_finished_moving_public),
+            (hours_spent_public_bus / people_finished_moving_public) if people_finished_moving_public else 0,
             (hours_spent_private_cars / people_finished_moving_private),
         ), True, BLACK)
         screen.blit(time_text, (TEXT_MARGIN, y))
@@ -251,6 +253,10 @@ def get_random_people_for_private_car():
         return 2
     return math.ceil((p - 0.8) * 4) + 2
 
+def get_random_people_for_public_bus():
+    p = random.normalvariate(60, 10)
+    return min(math.ceil(p), 100)
+
 def get_exit_road(car):
     p = random.random()
     if p > 0.5:
@@ -282,12 +288,25 @@ while True:
         car.started = current_time
         cars.append(car)
 
+    for bus2 in new_buses:
+        bus2.people_carried += get_random_people_for_public_bus()
+        people_in_public_bus += bus2.people_carried
+        bus2.started = current_time
+        buses.append(bus2)
+
     for car in control.remove_old_cars(lanes, 0, ROAD_LENGTH):
         people_in_private_cars -= car.people_carried
         cars.remove(car)
+        # Not used.
         cars_finished_moving += 1
         people_finished_moving_private += car.people_carried
         hours_spent_private_cars += (current_time - car.start_time)
+
+    for bus2 in control.remove_old_buses(lanes, 0, ROAD_LENGTH):
+        people_in_public_bus -= bus2.people_carried
+        buses.remove(bus2)
+        people_finished_moving_public += bus2.people_carried
+        hours_spent_public_bus += (current_time - bus2.start_time)
 
     hours_total_public_bus += delta_t * people_in_public_bus
     hours_total_private_cars += delta_t * people_in_private_cars
