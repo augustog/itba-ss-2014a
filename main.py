@@ -66,6 +66,9 @@ people_finished_moving_public = 0
 lanes = [
     lane.Lane('SOUTH'),
     lane.Lane('SOUTH'),
+    lane.Lane('SOUTH'),
+    lane.Lane('SOUTH'),
+    lane.Lane(),
     lane.Lane(),
     lane.Lane(),
     lane.Lane(),
@@ -205,7 +208,8 @@ def draw_cars(lanes):
 def advance_cars(current_time, lanes):
     for lane in lanes:
         for car in lane.cars:
-            control.advance(car, lane, lights, current_time, delta_t)
+            control.do_time_step(car, lane, lanes, 4, 4,
+                lights, current_time, delta_t)
     return current_time + delta_t
 
 def get_random_people_for_private_car():

@@ -153,7 +153,7 @@ class ControlTest(unittest.TestCase):
 	lane1.add_car(car1)
 	lane2.add_car(car2)
         light = TrafficLight(100)
-        self.assertFalse(control.can_change_lane(car1, lane2, [light]))
+        self.assertFalse(control.can_change_lane(car1, lane1, lane2, [light]))
 
     def test_cant_change_lane_when_car_slightly_behind(self):
 	car1 = Car(20, 0, 0, 10, 0)
@@ -163,7 +163,7 @@ class ControlTest(unittest.TestCase):
 	lane1.add_car(car1)
 	lane2.add_car(car2)
         light = TrafficLight(100)
-        self.assertFalse(control.can_change_lane(car1, lane2, [light]))
+        self.assertFalse(control.can_change_lane(car1, lane1, lane2, [light]))
 
     def test_cant_change_lane_when_car_slightly_in_front(self):
 	car1 = Car(20, 0, 0, 10, 0)
@@ -173,7 +173,7 @@ class ControlTest(unittest.TestCase):
 	lane1.add_car(car1)
 	lane2.add_car(car2)
         light = TrafficLight(100)
-        self.assertFalse(control.can_change_lane(car1, lane2, [light]))
+        self.assertFalse(control.can_change_lane(car1, lane1, lane2, [light]))
 
     def test_cant_change_lane_when_close_to_traffic_lights(self):
 	car1 = Car(98, 0, 0, 10, 0)
@@ -181,7 +181,14 @@ class ControlTest(unittest.TestCase):
 	lane2 = Lane()
 	lane1.add_car(car1)
         light = TrafficLight(100)
-        self.assertFalse(control.can_change_lane(car1, lane2, [light]))
+        self.assertFalse(control.can_change_lane(car1, lane1, lane2, [light]))
+
+    def test_cant_change_to_lane_with_opposite_direction(self):
+        car = Car(20, 0, 0, 10, 0)
+        lane1 = Lane()
+        lane2 = Lane('SOUTH')
+        light = TrafficLight(100)
+        self.assertFalse(control.can_change_lane(car, lane1, lane2, [light]))
 
     def test_can_change_lane_when_alone(self):
 	car1 = Car(20, 0, 0, 10, 0)
@@ -189,7 +196,7 @@ class ControlTest(unittest.TestCase):
 	lane2 = Lane()
 	lane1.add_car(car1)
         light = TrafficLight(100)
-        self.assertTrue(control.can_change_lane(car1, lane2, [light]))
+        self.assertTrue(control.can_change_lane(car1, lane1, lane2, [light]))
 
     def test_can_change_lane_when_cars_around_but_far(self):
 	car1 = Car(50, 0, 0, 10, 0)
@@ -201,7 +208,7 @@ class ControlTest(unittest.TestCase):
 	lane2.add_car(car2)
 	lane2.add_car(car3)
         light = TrafficLight(100)
-        self.assertTrue(control.can_change_lane(car1, lane2, [light]))
+        self.assertTrue(control.can_change_lane(car1, lane1, lane2, [light]))
 
     def test_shouldnt_change_lane_to_go_faster_when_nothing(self):
 	car1 = Car(50, 0, 0, 10, 0)
@@ -319,6 +326,19 @@ class ControlTest(unittest.TestCase):
     def test_appear_cars_between_two_lanes(self):
         lanes = [Lane(), Lane()]
         lights = [TrafficLight(100)]
+
+    def test_get_target_lanes(self):
+        lanes = [Lane(), Lane(), Lane(), Lane(), Lane(), Lane(), Lane(), Lane()]
+        self.assertEquals(control._get_target_lanes(lanes[3], lanes, 4, 4),
+            [lanes[2], None])
+        self.assertEquals(control._get_target_lanes(lanes[0], lanes, 4, 4),
+            [None, lanes[1]])
+        self.assertEquals(control._get_target_lanes(lanes[2], lanes, 4, 4),
+            [lanes[1], lanes[3]])
+        self.assertEquals(control._get_target_lanes(lanes[4], lanes, 4, 4),
+            [None, lanes[5]])
+        self.assertEquals(control._get_target_lanes(lanes[7], lanes, 4, 4),
+            [lanes[6], None])
 
 if __name__ == '__main__':
     unittest.main()

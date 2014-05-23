@@ -7,7 +7,7 @@ class Bus(Car):
 
     def __init__(self, line, speed, people_carried):
         Car.__init__(self, line.start_position,
-            line.end_position, speed, people_carried)
+            line.end_position, 1, speed, people_carried)
 
     def pick_up_people(self, people):
         self.people_carried += people
