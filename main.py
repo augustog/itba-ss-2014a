@@ -96,23 +96,24 @@ buses = []
 
 for i in range(1, STREETS):
     lights.append(trafficlight.TrafficLight(i * 100, 30))
+lights[2].state = 0
 
 sources = {
     'car': [
         {
-            'NORTH': source.Source(2),
-            'SOUTH': source.Source(2)
+            'NORTH': source.Source(6),
+            'SOUTH': source.Source(6)
         }
         for i in range(1, STREETS)
     ],
     'lanes': [
-        source.Source(3)
+        source.Source(9)
         for i in range(len(lanes))
     ],
     'bus': [ None for i in range(len(lanes)) ]
 }
-sources['bus'][3] = source.Source(3)
-sources['bus'][4] = source.Source(3)
+sources['bus'][3] = source.Source(8)
+sources['bus'][4] = source.Source(8)
 
 # Initialize
 
