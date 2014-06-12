@@ -81,18 +81,11 @@ lanes = [
     lane.Lane('SOUTH'),
     lane.Lane('SOUTH'),
     lane.Lane('SOUTH'),
-    lane.Lane('SOUTH'),
-    lane.Lane(),
     lane.Lane(),
     lane.Lane(),
     lane.Lane(),
     lane.Lane(),
 ]
-
-lanes[3].exclusive = True
-lanes[4].exclusive = True
-lanes[5].exclusive = True
-lanes[6].exclusive = True
 
 lights = []
 cars = []
@@ -103,14 +96,14 @@ for i in range(1, STREETS):
 lights[2].state = 0
 
 line_152_1 = bus_line.BusLine([
-    bus_stop.BusStop(lanes[3], 40, 0),
-    bus_stop.BusStop(lanes[3], 240, 0),
-    bus_stop.BusStop(lanes[3], 440, 0),
+    bus_stop.BusStop(lanes[0], 40, 0),
+    bus_stop.BusStop(lanes[0], 240, 0),
+    bus_stop.BusStop(lanes[0], 440, 0),
 ], 0, ROAD_LENGTH)
 
 line_152_2 = bus_line.BusLine([
-    bus_stop.BusStop(lanes[6], 140, 0),
-    bus_stop.BusStop(lanes[6], 340, 0),
+    bus_stop.BusStop(lanes[7], 140, 0),
+    bus_stop.BusStop(lanes[7], 340, 0),
 ], 0, ROAD_LENGTH)
 
 sources = {
@@ -127,8 +120,8 @@ sources = {
     ],
     'bus': [ None for i in range(len(lanes)) ]
 }
-sources['bus'][3] = [{'source': source.Source(20), 'line': line_152_1}]
-sources['bus'][6] = [{'source': source.Source(20), 'line': line_152_2}]
+sources['bus'][0] = [{'source': source.Source(20), 'line': line_152_1}]
+sources['bus'][7] = [{'source': source.Source(20), 'line': line_152_2}]
 
 # Initialize
 
@@ -257,7 +250,7 @@ def draw_cars(lanes):
 def advance_cars(current_time, lanes):
     for lane in lanes:
         for car in lane.cars:
-            control.do_time_step(car, lane, lanes, 5, 5,
+            control.do_time_step(car, lane, lanes, 4, 4,
                 lights, current_time, delta_t)
     return current_time + delta_t
 
