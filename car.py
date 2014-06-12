@@ -1,5 +1,7 @@
 import math
 
+import source
+
 ADVANCE = 'Avanzando'
 CHANGING_LANE = 'Cambiando de carril'
 
@@ -17,6 +19,7 @@ class Car(object):
         self.speed = speed
         self.people_carried = people_carried
         self.state = ADVANCE
+        self.change_lane = source.Source(1)
 
     def set_acceleration(self, acceleration, delta_time):
         self.acceleration = acceleration
@@ -43,3 +46,8 @@ class Car(object):
             self.position,
             self.speed
         )
+
+    def distance_to_target_position(self):
+        if not self.exit_road:
+            return 1000000
+        return self.exit_road * 100 - self.position

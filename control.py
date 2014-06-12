@@ -152,7 +152,7 @@ def advance(car, lane, traffic_lights, time, delta_time):
             distance = next_stop.position - car.position
             if distance < BUS_STOP_MARGIN:
                 accelerate_car_to_reach(car, 0, distance, delta_time)
-    
+
     car.advance(delta_time)
 
 def accelerate_car_to_reach(car, target_speed, distance, delta_time):
@@ -202,14 +202,62 @@ def _get_target_lanes(lane, lanes, lanes_direction0, lanes_direction1):
     return [lanes[index-1], lanes[index+1]]
 
 def do_time_step(car, lane, lanes, lanes_direction0, lanes_direction1, traffic_lights, current_time, delta_t):
-    target_lane = should_change_lane_to_move_faster(car, lane,
-                    _get_target_lanes(lane, lanes, lanes_direction0,
-                    lanes_direction1), traffic_lights)
+    target_lane = decide_lane_change(car, lane, lanes, lanes_direction0, lanes_direction1, traffic_lights, current_time, delta_t)
     if target_lane:
         change_lane(car, lane, target_lane)
     else:
         advance(car, lane, traffic_lights, current_time, delta_t)
-    
+
+def get_lane_index(lane, lanes):
+    first_direction = lanes[0].way
+    turns = 0
+    last_change = 0
+    index = 0
+    while index < len(lanes):
+        while lanes[index].way == first_direction:
+            if lane == lanes[index]:
+                if turns % 2 == 0:
+                    return index - last_change
+                else:
+                    ret = 0
+                    while index < len(lanes) and lanes[index].way == first_direction:
+                        ret += 1
+                        index += 1
+                    return ret
+            index += 1
+        last_change = index
+        first_direction = lanes[index].way
+        turns += 1
+    return len(lanes) - 1
+
+def decide_lane_change(car, lane, lanes, lanes_direction0, lanes_direction1, traffic_lights, current_time, delta_t):
+    target_faster = should_change_lane_to_move_faster(car, lane,
+                    _get_target_lanes(lane, lanes, lanes_direction0,
+                    lanes_direction1), traffic_lights)
+    lane_index = get_lane_index(lane, lanes)
+    target_turning = None
+    if lane_index != 0 and should_change_lane_to_turn(car, lane_index):
+        if lane.way == 'SOUTH':
+            target_turning = 0
+            while lanes[target_turning] != lane:
+                target_turning += 1
+            target_turning = lanes[target_turning + 1]
+        else:
+            target_turning = 0
+            while lanes[target_turning] != lane:
+                target_turning += 1
+            target_turning = lanes[target_turning - 1]
+    if target_faster or target_turning:
+        if car.change_lane.chances_to_appear(delta_t):
+            if target_turning and can_change_lane(car, lane, target_turning, traffic_lights):
+                car.change_lane.reset()
+                return target_turning
+            if not target_turning and target_faster and can_change_lane(car, lane, target_faster, traffic_lights):
+                car.change_lane.reset()
+                return target_faster
+
+def should_change_lane_to_turn(car, current_lane_number):
+    return car.distance_to_target_position() < 50 * current_lane_number
 
 def change_lane(car, from_lane, to_lane):
     from_lane.remove_car(car)
@@ -219,22 +267,21 @@ def can_change_lane(car, current_lane, to_lane, traffic_lights):
     next_car = get_next_car(car, to_lane)
     side_car = get_prev_car(car, to_lane)
     next_traffic_light = get_next_traffic_light(car, traffic_lights)
-    if (current_lane.way != to_lane.way or 
+    if (current_lane.way != to_lane.way or
            current_lane.exclusive != to_lane.exclusive or
            (side_car and side_car.position >= rear(car, side_car.speed)) or
            (next_car and car.position >= rear(next_car, car.speed)) or
-           (next_traffic_light and 
+           (next_traffic_light and
            next_traffic_light.position - car.position < car.length * 1.5)):
         # If the car changes lanes the car behind it will be too close
         # or it will be too close to the next car.
-        # If the car is too close to the traffic light then it won't 
+        # If the car is too close to the traffic light then it won't
         # change lane either.
         return False
     return True
 
 # target_lanes should be an array with exactly 2 lanes.
-def should_change_lane_to_move_faster(car, from_lane, target_lanes,
-    traffic_lights):
+def should_change_lane_to_move_faster(car, from_lane, target_lanes, traffic_lights):
     next_pos0 = False
     next_pos1 = False
     next_pos_current = False
@@ -247,7 +294,7 @@ def should_change_lane_to_move_faster(car, from_lane, target_lanes,
             next_pos0 = next_car.position
     if target_lanes[1]:
         to_lane1 = can_change_lane(car, from_lane, target_lanes[1], traffic_lights)
-	next_car = get_next_car(car, target_lanes[1])
+        next_car = get_next_car(car, target_lanes[1])
         if next_car:
             next_pos1 = next_car.position
     next_car = get_next_car(car, from_lane)
@@ -275,10 +322,6 @@ def should_change_lane_to_move_faster(car, from_lane, target_lanes,
             return False
         return target_lanes[1]
     return False
-
-def should_change_lane_to_turn(car, from_lane, lanes, traffic_lights):
-    pass
-    
 
 def bus_stop(bus, stop):
     bus.pick_up_people(stop.bus_arrived(bus))
@@ -320,17 +363,19 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
 
 def make_buses_appear(lanes, sources, time, delta_time):
     new_buses = []
-    for index, source in enumerate(sources['bus']):
-        stops = [bus_stop_module.BusStop(lanes[index], 40, 0), bus_stop_module.BusStop(lanes[index], 140, 0), bus_stop_module.BusStop(lanes[index], 240, 0), bus_stop_module.BusStop(lanes[index], 340, 0)]
-        if source and source.chances_to_appear(delta_time):
-            new_bus = bus_module.Bus(bus_line.BusLine(stops, 0, 0),
-                                        0, 0)
-            next_car = get_next_car(new_bus, lanes[index])
-            if not next_car or (
-                    rear(next_car, 0) > new_bus.position + DISTANCE_MARGIN):
-                lanes[index].add_car(new_bus)
-                new_buses.append(new_bus)
-                source.reset()
+    for index, bus_sources in enumerate(sources['bus']):
+        if bus_sources:
+            for x in bus_sources:
+                line = x['line']
+                source = x['source']
+                if source and source.chances_to_appear(delta_time):
+                    new_bus = bus_module.Bus(line, 0, 0)
+                    next_car = get_next_car(new_bus, lanes[index])
+                    if not next_car or (
+                            rear(next_car, 0) > new_bus.position + DISTANCE_MARGIN):
+                        lanes[index].add_car(new_bus)
+                        new_buses.append(new_bus)
+                        source.reset()
     return new_buses
 
 def remove_old_vehicles(lanes, start, end, vehicleType):
@@ -339,6 +384,10 @@ def remove_old_vehicles(lanes, start, end, vehicleType):
         for vehicle in lane.cars:
             if start > vehicle.position or end < vehicle.position:
                 if type(vehicle) is vehicleType:
+                    removed.append(vehicle)
+                    lane.remove_car(vehicle)
+            if isinstance(vehicle, car_module.Car):
+                if vehicle.exit_road and vehicle.position > vehicle.exit_road * 100:
                     removed.append(vehicle)
                     lane.remove_car(vehicle)
     return removed

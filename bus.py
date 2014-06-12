@@ -11,3 +11,13 @@ class Bus(Car):
 
     def pick_up_people(self, people):
         self.people_carried += people
+
+    def distance_to_target_position(self):
+        distances = []
+        for stop in self.line.bus_stops:
+            distance = stop.position - self.position
+            if distance > 0:
+                distances.append(distance)
+        if distances:
+            return min(distances)
+        return 10000000
