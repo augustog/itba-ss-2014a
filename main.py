@@ -33,7 +33,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 
-STREETS = 5
+STREETS = 50
 ROAD_LENGTH = STREETS * 100
 
 SCREEN_WIDTH = 1200
@@ -96,14 +96,13 @@ for i in range(1, STREETS):
 lights[2].state = 0
 
 line_152_1 = bus_line.BusLine([
-    bus_stop.BusStop(lanes[0], 40, 0),
-    bus_stop.BusStop(lanes[0], 240, 0),
-    bus_stop.BusStop(lanes[0], 440, 0),
+    bus_stop.BusStop(lanes[0], 40 + i * 200, 0)
+    for i in range(24)
 ], 0, ROAD_LENGTH)
 
 line_152_2 = bus_line.BusLine([
-    bus_stop.BusStop(lanes[7], 140, 0),
-    bus_stop.BusStop(lanes[7], 340, 0),
+    bus_stop.BusStop(lanes[7], 140 + i * 200, 0)
+    for i in range(24)
 ], 0, ROAD_LENGTH)
 
 sources = {
@@ -138,6 +137,7 @@ def draw_line(line_type=STRONG, from_x=0, to_x=0, y=0, color=BLACK):
 
 def draw_dotted_line(from_x, to_x, y, color):
     for i in range(from_x, to_x, DOTTED_LENGTH):
+        pass
         # pygame.draw.line(
         #     screen, color, (i, y), (i + DOTTED_LENGTH / 2, y), DOTTED_WIDTH
         # )
@@ -145,43 +145,69 @@ def draw_dotted_line(from_x, to_x, y, color):
 # font = pygame.font.Font(None, 24)
 
 def draw_data():
-    y = TEXT_MARGIN
-    time_text = font.render('Time: %.2f' % current_time, True, BLACK)
-    screen.blit(time_text, (TEXT_MARGIN, y))
-    y += time_text.get_height() + TEXT_LINE_MARGIN
-    time_text = font.render('Cars: %d, Buses: %d' % (
+    print('Time: %.2f' % current_time)
+    print('Cars: %d, Buses: %d' % (
         len(cars), len(buses)
-    ), True, BLACK)
-    screen.blit(time_text, (TEXT_MARGIN, y))
-    y += time_text.get_height() + TEXT_LINE_MARGIN
-    time_text = font.render('People on cars: %d, People on buses: %d' % (
+    ))
+    print('People on cars: %d, People on buses: %d' % (
         people_in_private_cars, people_in_public_bus
-    ), True, BLACK)
-    screen.blit(time_text, (TEXT_MARGIN, y))
-    y += time_text.get_height() + TEXT_LINE_MARGIN
-    time_text = font.render('People that finished traveling in cars: %d'
+    ))
+    print('People that finished traveling in cars: %d'
         ', in bus: %d, total: %d' % (
         people_finished_moving_private,
         people_finished_moving_public,
         people_finished_moving_public + people_finished_moving_private
-    ), True, BLACK)
-    screen.blit(time_text, (TEXT_MARGIN, y))
-    y += time_text.get_height() + TEXT_LINE_MARGIN
-    time_text = font.render('Hours on cars: %d, Hours on buses: %d' % (
+    ))
+    print('Hours on cars: %d, Hours on buses: %d' % (
         hours_total_private_cars, hours_total_public_bus
-    ), True, BLACK)
-    screen.blit(time_text, (TEXT_MARGIN, y))
-    y += time_text.get_height() + TEXT_LINE_MARGIN
+    ))
     if people_finished_moving_private > 0:
-        time_text = font.render('Average time spent in traffic: %.2f, '
+        print('Average time spent in traffic: %.2f, '
             'Average on buses: %.2f, Average on cars: %.2f' % (
             (hours_spent_public_bus + hours_spent_private_cars) /
             (people_finished_moving_private + people_finished_moving_public),
             (hours_spent_public_bus / people_finished_moving_public) if people_finished_moving_public else 0,
             (hours_spent_private_cars / people_finished_moving_private),
-        ), True, BLACK)
-        screen.blit(time_text, (TEXT_MARGIN, y))
-        y += time_text.get_height() + TEXT_LINE_MARGIN
+        ))
+
+# def draw_data():
+#     y = TEXT_MARGIN
+#     time_text = font.render('Time: %.2f' % current_time, True, BLACK)
+#     screen.blit(time_text, (TEXT_MARGIN, y))
+#     y += time_text.get_height() + TEXT_LINE_MARGIN
+#     time_text = font.render('Cars: %d, Buses: %d' % (
+#         len(cars), len(buses)
+#     ), True, BLACK)
+#     screen.blit(time_text, (TEXT_MARGIN, y))
+#     y += time_text.get_height() + TEXT_LINE_MARGIN
+#     time_text = font.render('People on cars: %d, People on buses: %d' % (
+#         people_in_private_cars, people_in_public_bus
+#     ), True, BLACK)
+#     screen.blit(time_text, (TEXT_MARGIN, y))
+#     y += time_text.get_height() + TEXT_LINE_MARGIN
+#     time_text = font.render('People that finished traveling in cars: %d'
+#         ', in bus: %d, total: %d' % (
+#         people_finished_moving_private,
+#         people_finished_moving_public,
+#         people_finished_moving_public + people_finished_moving_private
+#     ), True, BLACK)
+#     screen.blit(time_text, (TEXT_MARGIN, y))
+#     y += time_text.get_height() + TEXT_LINE_MARGIN
+#     time_text = font.render('Hours on cars: %d, Hours on buses: %d' % (
+#         hours_total_private_cars, hours_total_public_bus
+#     ), True, BLACK)
+#     screen.blit(time_text, (TEXT_MARGIN, y))
+#     y += time_text.get_height() + TEXT_LINE_MARGIN
+#     if people_finished_moving_private > 0:
+#         time_text = font.render('Average time spent in traffic: %.2f, '
+#             'Average on buses: %.2f, Average on cars: %.2f' % (
+#             (hours_spent_public_bus + hours_spent_private_cars) /
+#             (people_finished_moving_private + people_finished_moving_public),
+#             (hours_spent_public_bus / people_finished_moving_public) if people_finished_moving_public else 0,
+#             (hours_spent_private_cars / people_finished_moving_private),
+#         ), True, BLACK)
+#         screen.blit(time_text, (TEXT_MARGIN, y))
+#         y += time_text.get_height() + TEXT_LINE_MARGIN
 
 
 def draw_lanes(lanes):
@@ -199,6 +225,7 @@ def draw_lanes(lanes):
         first = False
     draw_line(STRONG, start, end, y)
     for light in lights:
+        pass
         # pygame.draw.circle(screen,
         #     GREEN if light.is_green(current_time) else RED,
         #     (
