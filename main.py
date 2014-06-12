@@ -6,8 +6,8 @@ import random
 import sys
 
 # Third party library
-import pygame
-import pygame.locals as pg
+# import pygame
+# import pygame.locals as pg
 
 # First party
 import bus
@@ -125,24 +125,24 @@ sources['bus'][7] = [{'source': source.Source(20), 'line': line_152_2}]
 
 # Initialize
 
-pygame.init()
-pygame.font.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+# pygame.init()
+# pygame.font.init()
+# screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 def draw_line(line_type=STRONG, from_x=0, to_x=0, y=0, color=BLACK):
     if line_type == DOTTED:
         draw_dotted_line(from_x, to_x, y, color)
     else:
         width = 4 if line_type == STRONG else DOTTED_WIDTH
-        pygame.draw.line(screen, color, (from_x, y), (to_x, y), width)
+        # pygame.draw.line(screen, color, (from_x, y), (to_x, y), width)
 
 def draw_dotted_line(from_x, to_x, y, color):
     for i in range(from_x, to_x, DOTTED_LENGTH):
-        pygame.draw.line(
-            screen, color, (i, y), (i + DOTTED_LENGTH / 2, y), DOTTED_WIDTH
-        )
+        # pygame.draw.line(
+        #     screen, color, (i, y), (i + DOTTED_LENGTH / 2, y), DOTTED_WIDTH
+        # )
 
-font = pygame.font.Font(None, 24)
+# font = pygame.font.Font(None, 24)
 
 def draw_data():
     y = TEXT_MARGIN
@@ -199,14 +199,14 @@ def draw_lanes(lanes):
         first = False
     draw_line(STRONG, start, end, y)
     for light in lights:
-        pygame.draw.circle(screen,
-            GREEN if light.is_green(current_time) else RED,
-            (
-                int(START_MARGIN + light.position * SCALE_METERS_TO_SCREEN),
-                int(y + TRAFFIC_LIGHT_MARGIN)
-            ),
-            TRAFFIC_LIGHT_RADIUS
-        )
+        # pygame.draw.circle(screen,
+        #     GREEN if light.is_green(current_time) else RED,
+        #     (
+        #         int(START_MARGIN + light.position * SCALE_METERS_TO_SCREEN),
+        #         int(y + TRAFFIC_LIGHT_MARGIN)
+        #     ),
+        #     TRAFFIC_LIGHT_RADIUS
+        # )
 
 
 def get_color(car):
@@ -214,27 +214,27 @@ def get_color(car):
 
 def draw_bus(bus, direction, lane_number):
     start = START_MARGIN if direction == 1 else SCREEN_WIDTH - START_MARGIN
-    pygame.draw.rect(
-        screen, YELLOW,
-        pygame.Rect(
-            start + bus.position * SCALE_METERS_TO_SCREEN * direction,
-            STATS_HEIGHT + LANE_WIDTH * lane_number + BUS_MARGIN,
-            BUS_HEIGHT * -1 * direction,
-            BUS_WIDTH
-        )
-    )
+    # pygame.draw.rect(
+    #     screen, YELLOW,
+    #     pygame.Rect(
+    #         start + bus.position * SCALE_METERS_TO_SCREEN * direction,
+    #         STATS_HEIGHT + LANE_WIDTH * lane_number + BUS_MARGIN,
+    #         BUS_HEIGHT * -1 * direction,
+    #         BUS_WIDTH
+    #     )
+    # )
 
 def draw_car(car, direction, lane_number):
     start = START_MARGIN if direction == 1 else SCREEN_WIDTH - START_MARGIN
-    pygame.draw.rect(
-        screen, get_color(car),
-        pygame.Rect(
-            start + car.position * SCALE_METERS_TO_SCREEN * direction,
-            STATS_HEIGHT + LANE_WIDTH * lane_number + CAR_MARGIN,
-            CAR_HEIGHT * -1 * direction,
-            CAR_WIDTH
-        )
-    )
+    # pygame.draw.rect(
+    #     screen, get_color(car),
+    #     pygame.Rect(
+    #         start + car.position * SCALE_METERS_TO_SCREEN * direction,
+    #         STATS_HEIGHT + LANE_WIDTH * lane_number + CAR_MARGIN,
+    #         CAR_HEIGHT * -1 * direction,
+    #         CAR_WIDTH
+    #     )
+    # )
 
 def draw_cars(lanes):
     lane_number = 0
@@ -276,10 +276,10 @@ def get_exit_road(car):
     return None
 
 while True:
-    for event in pygame.event.get():
-        if event.type == pg.QUIT:
-            sys.exit()
-    screen.fill(WHITE)
+    # for event in pygame.event.get():
+    #     if event.type == pg.QUIT:
+    #         sys.exit()
+    # screen.fill(WHITE)
     current_time = advance_cars(current_time, lanes)
     draw_data()
     draw_lanes(lanes)
@@ -320,5 +320,5 @@ while True:
     hours_total_public_bus += delta_t * people_in_public_bus
     hours_total_private_cars += delta_t * people_in_private_cars
 
-    pygame.display.update()
+    # pygame.display.update()
 
