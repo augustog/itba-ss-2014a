@@ -33,7 +33,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 YELLOW = (255, 255, 0)
 
-STREETS = 50
+STREETS = 20
 ROAD_LENGTH = STREETS * 100
 
 SCREEN_WIDTH = 1200
@@ -93,16 +93,15 @@ buses = []
 
 for i in range(1, STREETS):
     lights.append(trafficlight.TrafficLight(i * 100, 30))
-lights[2].state = 0
 
 line_152_1 = bus_line.BusLine([
-    bus_stop.BusStop(lanes[0], 40 + i * 200, 0)
-    for i in range(24)
+    bus_stop.BusStop(lanes[3], 40 + i * 200, 0)
+    for i in range(int(STREETS / 2))
 ], 0, ROAD_LENGTH)
 
 line_152_2 = bus_line.BusLine([
-    bus_stop.BusStop(lanes[7], 140 + i * 200, 0)
-    for i in range(24)
+    bus_stop.BusStop(lanes[4], 140 + i * 200, 0)
+    for i in range(int(STREETS / 2))
 ], 0, ROAD_LENGTH)
 
 sources = {
@@ -119,8 +118,8 @@ sources = {
     ],
     'bus': [ None for i in range(len(lanes)) ]
 }
-sources['bus'][0] = [{'source': source.Source(20), 'line': line_152_1}]
-sources['bus'][7] = [{'source': source.Source(20), 'line': line_152_2}]
+sources['bus'][3] = [{'source': source.Source(20), 'line': line_152_1}]
+sources['bus'][4] = [{'source': source.Source(20), 'line': line_152_2}]
 
 # Initialize
 
@@ -144,7 +143,12 @@ def draw_dotted_line(from_x, to_x, y, color):
 
 # font = pygame.font.Font(None, 24)
 
+times_called = [0]
+
 def draw_data():
+    times_called[0] += 1
+    if times_called[0] % 20 != 0:
+        return
     print('Time: %.2f' % current_time)
     print('Cars: %d, Buses: %d' % (
         len(cars), len(buses)
@@ -169,6 +173,7 @@ def draw_data():
             (hours_spent_public_bus / people_finished_moving_public) if people_finished_moving_public else 0,
             (hours_spent_private_cars / people_finished_moving_private),
         ))
+    print 'Buses carry: ' + ', '.join(['%d: (%d, %f)' % (bus2.index, bus2.people_carried, bus2.position) for bus2 in buses])
 
 # def draw_data():
 #     y = TEXT_MARGIN
@@ -317,6 +322,9 @@ while True:
     new_buses = control.make_buses_appear(
         lanes, sources, current_time, delta_t
     )
+
+    prev_ppl_public = people_in_public_bus
+    new_ppl_public = 0
     for car in new_cars:
         car.people_carried += get_random_people_for_private_car()
         people_in_private_cars += car.people_carried
@@ -325,7 +333,9 @@ while True:
         cars.append(car)
 
     for bus2 in new_buses:
-        bus2.people_carried += get_random_people_for_public_bus()
+        ppl_bus = get_random_people_for_public_bus()
+        new_ppl_public += ppl_bus
+        bus2.people_carried += ppl_bus
         people_in_public_bus += bus2.people_carried
         bus2.started = current_time
         buses.append(bus2)
@@ -340,12 +350,14 @@ while True:
 
     for bus2 in control.remove_old_buses(lanes, 0, ROAD_LENGTH):
         people_in_public_bus -= bus2.people_carried
-        buses.remove(bus2)
         people_finished_moving_public += bus2.people_carried
         hours_spent_public_bus += (current_time - bus2.start_time)
+        if bus2 in buses:
+            print 'Removing bus #%d' % bus2.index
+            buses.remove(bus2)
+        else:
+            print "ERROR: Bus %d no estaba en buses! wtf" % bus2.index
 
     hours_total_public_bus += delta_t * people_in_public_bus
     hours_total_private_cars += delta_t * people_in_private_cars
-
-    # pygame.display.update()
 

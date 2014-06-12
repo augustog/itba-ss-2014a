@@ -8,7 +8,9 @@ class TrafficLight(object):
         self.delay = delay
 
     def is_green(self, time):
-        return bool((self.state + int(time / self.delay)) % 2)
+        if bool((self.state + int(time / self.delay)) % 2):
+            return True
+        return bool((self.state + int((time + 20)/ self.delay)) % 2)
 
     def pretty_print(self, time):
         return 'Light %s at %d' % (
