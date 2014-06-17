@@ -87,8 +87,10 @@ lanes = [
     lane.Lane(),
 ]
 
+lanes[2].exclusive = True
 lanes[3].exclusive = True
 lanes[4].exclusive = True
+lanes[5].exclusive = True
 
 lights = []
 cars = []
@@ -122,7 +124,7 @@ sources = {
     'bus': [ None for i in range(len(lanes)) ]
 }
 sources['bus'][3] = [{'source': source.Source(20), 'line': line_152_1}]
-sources['bus'][4] = [{'source': source.Source(20), 'line': line_152_2}]
+sources['bus'][6] = [{'source': source.Source(20), 'line': line_152_2}]
 
 # Initialize
 
@@ -176,7 +178,6 @@ def draw_data():
             (hours_spent_public_bus / people_finished_moving_public) if people_finished_moving_public else 0,
             (hours_spent_private_cars / people_finished_moving_private),
         ))
-    print 'Buses carry: ' + ', '.join(['%d: (%d, %f)' % (bus2.index, bus2.people_carried, bus2.position) for bus2 in buses])
 
 # def draw_data():
 #     y = TEXT_MARGIN
@@ -310,7 +311,7 @@ def get_exit_road(car):
         return exit
     return None
 
-while True:
+while current_time < 60 * 90: # 1 hora y media
     # for event in pygame.event.get():
     #     if event.type == pg.QUIT:
     #         sys.exit()
