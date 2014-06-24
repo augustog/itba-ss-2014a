@@ -384,20 +384,20 @@ def remove_old_vehicles(lanes, start, end, vehicleType):
     for lane in lanes:
         for vehicle in lane.cars:
             if start > vehicle.position or end < vehicle.position:
-                if type(vehicle) is vehicleType:
+                if vehicle.__class__.__name__ == vehicleType:
                     removed.append(vehicle)
                     lane.remove_car(vehicle)
-            if isinstance(vehicle, car_module.Car):
+            if vehicleType == 'Car' and vehicle.__class__.__name__ == 'Car':
                 if vehicle.exit_road and vehicle.position > vehicle.exit_road * 100:
                     removed.append(vehicle)
                     lane.remove_car(vehicle)
     return removed
 
 def remove_old_cars(lanes, start, end):
-    return remove_old_vehicles(lanes, start, end, car_module.Car)
+    return remove_old_vehicles(lanes, start, end, 'Car')
 
 def remove_old_buses(lanes, start, end):
-    return remove_old_vehicles(lanes, start, end, bus_module.Bus)
+    return remove_old_vehicles(lanes, start, end, 'Bus')
 
 def has_warmup_finished(lanes, min_lanes, min_cars):
     cars_per_block = defaultdict(0)
