@@ -1,5 +1,6 @@
 import math
 import random
+from collections import defaultdict
 
 import bus as bus_module
 import car as car_module
@@ -398,3 +399,11 @@ def remove_old_cars(lanes, start, end):
 def remove_old_buses(lanes, start, end):
     return remove_old_vehicles(lanes, start, end, bus_module.Bus)
 
+def has_warmup_finished(lanes, min_lanes, min_cars):
+    cars_per_block = defaultdict(0)
+    for lane in lanes:
+        for car in lane.cars:
+            cars_per_block[math.ceil(car.position/100)] += 1
+    if len([block_cars > min_cars for block_cars in cars_per_block.values()]) > min_lanes:
+        return True
+    return False

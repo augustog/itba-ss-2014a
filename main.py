@@ -100,7 +100,6 @@ buses = []
 
 for i in range(1, STREETS):
     lights.append(trafficlight.TrafficLight(i * 100, 30))
-lights[2].state = 0
 
 line_152_1 = bus_line.BusLine([
     bus_stop.BusStop(lanes[3], 40, 0),
@@ -282,6 +281,8 @@ def get_exit_road(car):
         return exit
     return None
 
+warmup = True
+
 while True:
     for event in pygame.event.get():
         if event.type == pg.QUIT:
@@ -315,17 +316,23 @@ while True:
         cars.remove(car)
         # Not used.
         cars_finished_moving += 1
-        people_finished_moving_private += car.people_carried
-        hours_spent_private_cars += (current_time - car.start_time)
+	if not warmup:
+    	    people_finished_moving_private += car.people_carried
+	    hours_spent_private_cars += (current_time - car.start_time)
 
     for bus2 in control.remove_old_buses(lanes, 0, ROAD_LENGTH):
         people_in_public_bus -= bus2.people_carried
         buses.remove(bus2)
-        people_finished_moving_public += bus2.people_carried
-        hours_spent_public_bus += (current_time - bus2.start_time)
+        if not warmup:
+            people_finished_moving_public += bus2.people_carried
+            hours_spent_public_bus += (current_time - bus2.start_time)
 
-    hours_total_public_bus += delta_t * people_in_public_bus
-    hours_total_private_cars += delta_t * people_in_private_cars
+    if not warmup:
+        hours_total_public_bus += delta_t * people_in_public_bus
+        hours_total_private_cars += delta_t * people_in_private_cars
+    else:
+        warmup = control.has_warmup_finished(lanes, MIN_LANES_OCCUPIED,
+            MIN_CARS_PER_LANE)
 
     pygame.display.update()
 
