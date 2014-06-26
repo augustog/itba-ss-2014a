@@ -35,13 +35,13 @@ class ControlTest(unittest.TestCase):
     def test_cant_advance_on_traffic_light(self):
         red_light = TrafficLight(200, initial_state='Red')
         self.assertFalse(
-            control.can_advance(self.car, self.lane, [red_light], 0)
+            control.can_advance(self.car, self.lane, [self.lane], [red_light], 0)
         )
 
     def test_can_advance_on_green(self):
         light = TrafficLight(200)
         self.assertTrue(
-            control.can_advance(self.car, self.lane, [light], 0)
+            control.can_advance(self.car, self.lane, [self.lane], [light], 0)
         )
 
     def test_car_cant_advance_due_to_traffic(self):
@@ -49,7 +49,7 @@ class ControlTest(unittest.TestCase):
         other_car = Car(200 + Car.length, 0, 0, 0, 0)
         self.lane.add_car(other_car)
         self.assertFalse(
-            control.can_advance(self.car, self.lane, [light], 0)
+            control.can_advance(self.car, self.lane, [self.lane], [light], 0)
         )
         # Cleanup
         self.lane.remove_car(other_car)
