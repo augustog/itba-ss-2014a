@@ -1,5 +1,4 @@
 from car import Car
-from bus_line import BusLine
 
 class Bus(Car):
     max_people = 100
