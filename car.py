@@ -53,3 +53,6 @@ class Car(object):
         if not self.exit_road:
             return 1000000
         return self.exit_road * 100 - self.position
+
+    def __lt__(self, other):
+        return self.position - other.position

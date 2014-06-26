@@ -1,3 +1,5 @@
+import bisect
+
 class Lane(object):
 
     def __init__(self):
@@ -8,7 +10,7 @@ class Lane(object):
         self.index = 0
 
     def add_car(self, car):
-        self.cars.append(car)
+        bisect.insort_right(self.cars, car)
 
     def remove_car(self, car):
         self.cars.remove(car)
