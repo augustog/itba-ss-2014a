@@ -1,10 +1,9 @@
 class BusStop(object):
 
-
-    def __init__(self, lane, position, initial_people):
+    def __init__(self, position):
         self.lane = lane
         self.position = position
-        self.people = initial_people
+        self.people = 0
 
     def person_arrived(self):
         self.people += 1

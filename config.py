@@ -4,6 +4,10 @@ import random
 
 STREETS = 5
 ROAD_LENGTH = STREETS * 100
+CHANCES_TO_ADD_AT_BEGINNING = 0.6
+
+MIN_LANES_OCCUPIED = 3
+MIN_CARS_PER_LANE = 4
 
 def get_random_people_for_private_car():
     p = random.random()
