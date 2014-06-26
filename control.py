@@ -12,6 +12,7 @@ import bus_stop as bus_stop_module
 MPS_PER_METER = 3.0
 DISTANCE_MARGIN = 1
 BUS_STOP_MARGIN = 5
+BUS_STOP_DISTANCE = 1
 MARGINAL_DISTANCE = 0.01
 
 def _consecutive_in_set(value, elements, key, compare, select):
@@ -161,7 +162,10 @@ def advance(car, lane, lanes, traffic_lights, time, delta_time):
         next_stop = get_next_bus_stop(car)
         if next_stop:
             distance = next_stop.position - car.position
-            if distance < BUS_STOP_MARGIN:
+            if distance < BUS_STOP_DISTANCE:
+                car.just_stopped = True
+                car.closest_stop = next_stop
+            elif distance < BUS_STOP_MARGIN:
                 accelerate_car_to_reach(car, 0, distance, delta_time)
 
     car.advance(delta_time)

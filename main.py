@@ -151,7 +151,7 @@ class PygameListener(object):
         pygame.display.update()
 
 
-sim = sim_module.Simulator(config_lanes, [line_1, line_2, line_3, line_4])
+sim = sim_module.Simulator(config_lanes, config_lines)
 sim.add_listener(PygameListener())
 
 while True:

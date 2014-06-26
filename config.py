@@ -21,7 +21,6 @@ config_lanes = [
     lane.Lane(),
 ]
 config_lanes[0].exclusive = True
-config_lanes[1].exclusive = True
 
 line_1 = bus_line.BusLine([
     bus_stop.BusStop(40),
@@ -45,6 +44,8 @@ line_4 = bus_line.BusLine([
     bus_stop.BusStop(380),
 ], 230)
 
+config_lines = [line_1, line_2, line_3, line_4]
+
 def get_random_people_for_private_car():
     p = random.random()
     if p < 0.5:
@@ -55,3 +56,4 @@ def get_random_people_for_private_car():
         return 3
     else:
         return 4
+
