@@ -23,14 +23,13 @@ print 'Tiempo, warmup, velocidad autos, velocidad buses, transportadas auto, tra
 
 condition = False
 
-while !condition:
+while not condition:
     config_lanes = [
         lane.Lane(),
         lane.Lane(),
         lane.Lane(),
         lane.Lane(),
     ]
-    config_lanes[0].exclusive = True
 
     line_1 = bus_line.BusLine([
         bus_stop.BusStop(40),
@@ -60,13 +59,13 @@ while !condition:
     while not sim.has_finished():
         sim.loop()
 
-    round_results = [
+    round_results = (
         sim.current_time,
         sim.warmup_time,
         sim.private_speed(),
         sim.public_speed(),
         sim.private_transported(),
         sim.public_transported()
-    ]
+    )
 
     print '%0.2f, %0.2f, %0.4f, %0.4f, %d, %d' % round_results

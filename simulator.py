@@ -16,7 +16,10 @@ class Simulator(object):
     def __init__(self, lanes, lines):
 
         self.current_time = 0
+        self.warmup_time = 0
         self.delta_t = 0.125
+        self.last_300 = []
+        self.last_300_private = []
 
         self.people_source = source.Source(1)
         self.car_source = source.Source(1)
@@ -176,8 +179,9 @@ class Simulator(object):
             for bus in self.buses:
                 self.meters_covered_public += bus.last_delta * bus.people_carried
         else:
-            self.warmup = control.has_warmup_finished(self.lanes, MIN_LANES_OCCUPIED,
-                MIN_CARS_PER_LANE)
+            self.warmup = not control.has_warmup_finished(self.lanes, MIN_LANES_OCCUPIED, MIN_CARS_PER_LANE)
+            if not self.warmup:
+                self.warmup_time = self.current_time
 
         for car in control.remove_old_cars(self.lanes, 0, ROAD_LENGTH):
             self.people_in_the_system_private -= car.people_carried
@@ -192,7 +196,38 @@ class Simulator(object):
                 self.people_finished_public += bus2.people_carried
 
         self.current_time += self.delta_t
+        if not self.warmup and self.current_time - math.ceil(self.current_time) == 0:
+            if self.time_spent_private > 0 and self.time_spent_public > 0:
+                self.last_300.append(self.public_speed())
+                self.last_300_private.append(self.private_speed())
+                if len(self.last_300) > 300:
+                    self.last_300.pop(0)
+                    self.last_300_private.pop(0)
 
         if self.listener:
             self.listener.after_loop(self)
 
+    def private_speed(self):
+        return self.meters_covered_private / self.time_spent_private
+    def public_speed(self):
+        return self.meters_covered_public / self.time_spent_public
+    def private_transported(self):
+        return self.people_finished_private
+    def public_transported(self):
+        return self.people_finished_public
+
+    def has_finished(self):
+        if self.warmup or len(self.last_300) != 300:
+            return False
+        len_public = len(self.last_300)
+        mean_public = sum(self.last_300) / len_public
+        std_public = math.sqrt(sum((x-mean_public)**2 for x in self.last_300) / len_public)
+        len_private = len(self.last_300_private)
+        mean_private = sum(self.last_300_private) / len_private
+        std_private = math.sqrt(sum((x-mean_private)**2 for x in self.last_300_private) / len_private)
+        return (
+                not self.warmup
+                and len(self.last_300) == 300
+                and std_public < 0.01 * mean_public
+                and std_private < 0.01 * mean_private
+        )

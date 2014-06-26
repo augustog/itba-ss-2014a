@@ -386,8 +386,8 @@ def has_warmup_finished(lanes, min_lanes, min_cars):
     cars_per_block = defaultdict(int)
     for lane in lanes:
         for car in lane.cars:
-            cars_per_block[math.ceil(car.position/100)] += 1
-    if len([block_cars > min_cars for block_cars in cars_per_block.values()]) > min_lanes:
+            cars_per_block[str(math.ceil(car.position/100))] += 1
+    if sum([1 if block_cars > min_cars else 0 for block_cars in cars_per_block.values()]) > min_lanes:
         return True
     return False
 
