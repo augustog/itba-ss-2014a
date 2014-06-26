@@ -400,7 +400,7 @@ def remove_old_buses(lanes, start, end):
     return remove_old_vehicles(lanes, start, end, 'Bus')
 
 def has_warmup_finished(lanes, min_lanes, min_cars):
-    cars_per_block = defaultdict(0)
+    cars_per_block = defaultdict()
     for lane in lanes:
         for car in lane.cars:
             cars_per_block[math.ceil(car.position/100)] += 1
