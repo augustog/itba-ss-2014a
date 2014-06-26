@@ -82,7 +82,7 @@ def draw_lanes(simulator, lanes, lights):
     end = SCREEN_WIDTH - START_MARGIN
     for i in range(0, len(lanes)):
         line_type = DOTTED
-        if lanes[i].exclusive != lanes[i-1].exclusive:
+        if i == 0 or lanes[i].exclusive != lanes[i-1].exclusive:
             line_type = STRONG
         draw_line(line_type, start, end, y)
         y += LANE_WIDTH

@@ -20,6 +20,8 @@ config_lanes = [
     lane.Lane(),
     lane.Lane(),
 ]
+config_lanes[0].exclusive = True
+config_lanes[1].exclusive = True
 
 line_1 = bus_line.BusLine([
     bus_stop.BusStop(40),
