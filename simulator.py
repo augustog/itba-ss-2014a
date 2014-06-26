@@ -167,6 +167,7 @@ class Simulator(object):
         for line in self.lines:
             if self.current_time - line.last_time_appeared > line.frequency:
                 new_bus = line.new_bus()
+                self.people_in_the_system_public += new_bus.people_carried
                 line.last_time_appeared = self.current_time
                 self.bus_queue.append(new_bus)
                 self.buses.append(new_bus)

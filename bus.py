@@ -16,7 +16,7 @@ class Bus(Car):
         self.people_carried += people
 
     def people_leave(self):
-        number = int(math.floor(random.random() * random.random() / 10 * self.people_carried))
+        number = int(math.floor(random.random() * random.random() / 7 * self.people_carried))
         print 'Number of people leaving: %d' % number
         self.people_carried -= number
         return number

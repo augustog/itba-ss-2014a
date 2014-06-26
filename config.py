@@ -19,29 +19,24 @@ config_lanes = [
     lane.Lane(),
     lane.Lane(),
     lane.Lane(),
+    lane.Lane(),
 ]
 config_lanes[0].exclusive = True
 
 line_1 = bus_line.BusLine([
-    bus_stop.BusStop(40),
-    bus_stop.BusStop(240),
-    bus_stop.BusStop(440),
+    bus_stop.BusStop(i) for i in range(40, ROAD_LENGTH, 200)
 ], 70)
 
 line_2 = bus_line.BusLine([
-    bus_stop.BusStop(140),
-    bus_stop.BusStop(340),
+    bus_stop.BusStop(i) for i in range(140, ROAD_LENGTH, 200)
 ], 120)
 
 line_3 = bus_line.BusLine([
-    bus_stop.BusStop(80),
-    bus_stop.BusStop(280),
-    bus_stop.BusStop(480),
+    bus_stop.BusStop(i) for i in range(80, ROAD_LENGTH, 200)
 ], 110)
 
 line_4 = bus_line.BusLine([
-    bus_stop.BusStop(180),
-    bus_stop.BusStop(380),
+    bus_stop.BusStop(i) for i in range(180, ROAD_LENGTH, 200)
 ], 230)
 
 config_lines = [line_1, line_2, line_3, line_4]
