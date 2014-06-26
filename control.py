@@ -256,8 +256,7 @@ def can_change_lane(car, current_lane, to_lane, traffic_lights):
     next_car = get_next_car(car, to_lane)
     side_car = get_prev_car(car, to_lane)
     next_traffic_light = get_next_traffic_light(car, traffic_lights)
-    if (current_lane.way != to_lane.way or
-           current_lane.exclusive != to_lane.exclusive or
+    if (current_lane.exclusive != to_lane.exclusive or
            (side_car and side_car.position >= rear(car, side_car.speed)) or
            (next_car and car.position >= rear(next_car, car.speed)) or
            (next_traffic_light and
@@ -315,7 +314,7 @@ def should_change_lane_to_move_faster(car, from_lane, target_lanes, traffic_ligh
 def bus_stop(bus, stop):
     bus.pick_up_people(stop.bus_arrived(bus))
 
-car_lane = lambda y: lambda x: not x.exclusive and x.way == y
+car_lane = lambda x: not x.exclusive
 
 def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
     new_cars = []
@@ -328,7 +327,7 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
                         light.position + car_module.Car.length
                         + DISTANCE_MARGIN, 0, 0, 0, 0
                     )
-                    targets = filter(car_lane(direction), lanes)
+                    targets = filter(car_lane, lanes)
                     targets = filter(
                         lambda x: not get_next_car(new_car, x) or
                             rear(get_next_car(new_car, x), 0)

@@ -1,9 +1,11 @@
 class Lane(object):
 
-    def __init__(self, way='NORTH'):
+    def __init__(self):
         self.cars = []
-        self.way = way
+        self.next = None
+        self.prev = None
         self.exclusive = False
+        self.index = 0
 
     def add_car(self, car):
         self.cars.append(car)
