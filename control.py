@@ -387,7 +387,7 @@ def remove_old_vehicles(lanes, start, end, vehicleType):
                 if vehicle.__class__.__name__ == vehicleType:
                     removed.append(vehicle)
                     lane.remove_car(vehicle)
-            if vehicleType == 'Car' and vehicle.__class__.__name__ == 'Car':
+            elif vehicleType == 'Car' and vehicle.__class__.__name__ == 'Car':
                 if vehicle.exit_road and vehicle.position > vehicle.exit_road * 100:
                     removed.append(vehicle)
                     lane.remove_car(vehicle)
