@@ -4,14 +4,19 @@ import source
 import control
 import trafficlight
 from car import Car
+from control import *
 
+def get_blocks_before_turn(new_car):
+    if new_car.exit_road:
+        return new_car.exit_road - int(new_car.position/100)
+    return None
 
 class Simulator(object):
 
     def __init__(self, lanes, lines):
 
         self.current_time = 0
-        self.delta_t = 0
+        self.delta_t = 0.125
 
         self.people_source = source.Source(1)
         self.car_source = source.Source(1)
@@ -107,7 +112,7 @@ class Simulator(object):
             new_car = self.bus_queue[0]
             if (not get_next_car(new_car, self.bus_start_lane)) \
                     or rear(get_next_car(new_car, self.bus_start_lane), 0) > DISTANCE_MARGIN:
-                lane.add_car(self.bus_queue.pop(0))
+                self.bus_start_lane.add_car(self.bus_queue.pop(0))
 
         for queue in self.car_queues_init:
             if len(queue[0]):
@@ -128,10 +133,10 @@ class Simulator(object):
                     self.lanes
                 )
                 if target_lanes:
-                    random_choice(target_lanes).add_car(queue[0].pop(0))
+                    random.choice(target_lanes).add_car(queue[0].pop(0))
 
         if self.people_source.chances_to_appear(self.delta_t):
-            line = random.choice(self.line)
+            line = random.choice(self.lines)
             stop = random.choice(line.bus_stops)
             stop.person_arrived()
             self.people_in_the_system_public += 1
@@ -148,9 +153,9 @@ class Simulator(object):
                 new_car.position = where[1]
             self.cars.append(new_car)
             self.people_in_the_system_private += new_car.people_carried
-            new_car.exit_road = get_exit_road(new_car)
-            new_car.blocks_before_turn = get_blocks_before_turn();
-            new_car.started = current_time
+            new_car.exit_road = get_exit_road(new_car.position)
+            new_car.blocks_before_turn = get_blocks_before_turn(new_car)
+            new_car.started = self.current_time
             self.car_source.reset()
 
         for line in self.lines:
@@ -158,6 +163,7 @@ class Simulator(object):
                 new_bus = line.new_bus()
                 line.last_time_appeared = self.current_time
                 self.bus_queue.append(new_bus)
+                self.buses.append(new_bus)
 
         if not self.warmup:
             self.time_spent_public += self.delta_t * self.people_in_the_system_public
@@ -173,14 +179,16 @@ class Simulator(object):
         for car in control.remove_old_cars(self.lanes, 0, ROAD_LENGTH):
             self.people_in_the_system_private -= car.people_carried
             self.cars.remove(car)
-            if not warmup:
+            if not self.warmup:
         	self.people_finished_private += car.people_carried
 
         for bus2 in control.remove_old_buses(self.lanes, 0, ROAD_LENGTH):
             self.people_in_the_system_public -= bus2.people_carried
-            buses.remove(bus2)
-            if not warmup:
+            self.buses.remove(bus2)
+            if not self.warmup:
                 self.people_finished_public += bus2.people_carried
+
+        self.current_time += self.delta_t
 
         if self.listener:
             self.listener.after_loop(self)

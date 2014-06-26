@@ -7,6 +7,7 @@ import lane
 
 
 STREETS = 5
+BLOCK_LENGTH = 100
 ROAD_LENGTH = STREETS * 100
 CHANCES_TO_ADD_AT_BEGINNING = 0.6
 
@@ -46,7 +47,9 @@ def get_exit_road(position):
     p = random.random()
     if p < 0.6:
         return None
+    if int(math.ceil(position / 100 + 0.0001)) == STREETS:
+        return None
     return random.choice(range(
-        math.ceil(position / 100 + 0.0001),
-        ROAD_LENGTH / 100
+        int(math.ceil(position / 100 + 0.0001)),
+        STREETS
     ))

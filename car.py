@@ -20,6 +20,7 @@ class Car(object):
         self.people_carried = people_carried
         self.state = ADVANCE
         self.change_lane = source.Source(1)
+        self.last_delta = 0
 
     def set_acceleration(self, acceleration, delta_time):
         self.acceleration = acceleration
@@ -29,6 +30,7 @@ class Car(object):
         self.speed = min(self.speed, self.max_speed)
 
     def advance(self, delta_time):
+        self.last_delta = self.speed * delta_time
         self.position += self.speed * delta_time
 
     def _get_target_acceleration(self, target_speed, distance):

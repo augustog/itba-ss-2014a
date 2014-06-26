@@ -201,17 +201,11 @@ def get_target_time(car, distance):
             / car.max_speed + accelerating_time)
     return target_time
 
-def _get_target_lanes(lane, lanes, lanes_direction0, lanes_direction1):
-    index = lanes.index(lane)
-    if index == 0 or index == lanes_direction0:
-        return [None, lanes[index+1]]
-    if (index % lanes_direction0 == lanes_direction0 - 1 or
-            index % lanes_direction1 == lanes_direction1 - 1):
-        return [lanes[index-1], None]
-    return [lanes[index-1], lanes[index+1]]
+def _get_target_lanes(lane, lanes):
+    return [lane.prev, lane.next]
 
-def do_time_step(car, lane, lanes, lanes_direction0, lanes_direction1, traffic_lights, current_time, delta_t):
-    target_lane = decide_lane_change(car, lane, lanes, lanes_direction0, lanes_direction1, traffic_lights, current_time, delta_t)
+def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
+    target_lane = decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t)
     if target_lane:
         change_lane(car, lane, target_lane)
     else:
@@ -219,15 +213,11 @@ def do_time_step(car, lane, lanes, lanes_direction0, lanes_direction1, traffic_l
 
 def _get_turning_lane(lane, lanes):
     lane_index = lanes.index(lane)
-    if lane.way == 'SOUTH':
-        return lanes[lane_index - 1]
-    else:
-        return lanes[lane_index + 1]
+    return lanes[lane_index - 1]
 
-def decide_lane_change(car, lane, lanes, lanes_direction0, lanes_direction1, traffic_lights, current_time, delta_t):
+def decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t):
     target_faster = should_change_lane_to_move_faster(car, lane,
-                    _get_target_lanes(lane, lanes, lanes_direction0,
-                    lanes_direction1), traffic_lights)
+                    _get_target_lanes(lane, lanes), traffic_lights)
     lane_index = lanes.index(lane)
     target_turning = None
     if lane_index != 0 and lane_index != len(lanes) - 1 and should_change_lane_to_turn(car, lane_index):
