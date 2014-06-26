@@ -117,10 +117,11 @@ class ControlTest(unittest.TestCase):
         for i in range(1, 99):
             test_car = Car(i, 0, 0, 0, 0)
             lane = Lane()
+            lanes = [lane]
             lane.add_car(test_car)
             lights = [TrafficLight(100)]
             for j in range(200):
-                control.advance(test_car, lane, lights, 30, 0.1)
+                control.advance(test_car, lane, lanes, lights, 30, 0.1)
             self.assertTrue(test_car.position < 100,
                     'Car starting at %d fail' % i)
 
@@ -129,12 +130,13 @@ class ControlTest(unittest.TestCase):
             test_car_1 = Car(i, 0, 0, 0, 0)
             test_car_2 = Car(i + 19, 0, 0, 0, 0)
             lane = Lane()
+            lanes = [lane]
             lane.add_car(test_car_1)
             lane.add_car(test_car_2)
             lights = [TrafficLight(100)]
             for j in range(200):
-                control.advance(test_car_1, lane, lights, 30, 0.1)
-                control.advance(test_car_2, lane, lights, 30, 0.1)
+                control.advance(test_car_1, lane, lanes, lights, 30, 0.1)
+                control.advance(test_car_2, lane, lanes, lights, 30, 0.1)
             self.assertTrue(test_car_1.position < 100,
                     'First car at %d fail, pos(car1) = %f, pos(car2) = %f'
                     %(i, test_car_1.position, test_car_2.position))
