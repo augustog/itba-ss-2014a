@@ -1,4 +1,6 @@
 from config import *
+import car
+import bus
 
 
 STRONG = 'Strong'

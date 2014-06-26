@@ -1,9 +1,14 @@
 from config import *
 
+import source
+import control
+import trafficlight
+from car import Car
+
 
 class Simulator(object):
 
-    def __init__(self, lanes, listener):
+    def __init__(self, lanes, lines):
 
         self.current_time = 0
         self.delta_t = 0
@@ -15,16 +20,18 @@ class Simulator(object):
         self.init_target_functions()
         self.init_lanes(lanes)
         self.init_queues()
-        self.init_elements()
+        self.init_elements(lines)
 
+        self.listener = None
+
+    def add_listener(self, listener):
         self.listener = listener
-        listener.init()
 
-    def init_elements():
+    def init_elements(self, lines):
         self.lights = []
         self.cars = []
         self.buses = []
-        self.lines = []
+        self.lines = lines
         for i in range(1, STREETS):
             self.lights.append(trafficlight.TrafficLight(i * 100, 30))
 
@@ -40,9 +47,9 @@ class Simulator(object):
         for lane in lanes[-2::-1]:
             lane.next = prev
             prev = lane
-        for index, lane in enumerate(filter(lanes, lambda x: x.exclusive)):
+        for index, lane in enumerate(filter(lambda x: x.exclusive, lanes)):
             lane.index = index
-        for index, lane in enumerate(filter(lanes, lambda x: not x.exclusive)):
+        for index, lane in enumerate(filter(lambda x: not x.exclusive, lanes)):
             lane.index = index
 
     def init_target_functions(self):
@@ -82,7 +89,8 @@ class Simulator(object):
         self.current_time += self.delta_t
 
     def loop(self):
-        self.listener.pre_loop(self)
+        if self.listener:
+            self.listener.pre_loop(self)
         self.advance_cars()
 
         # Ascenso y descenso de personas en buses
@@ -97,16 +105,15 @@ class Simulator(object):
 
         if self.bus_queue:
             new_car = self.bus_queue[0]
-            if (not get_next_car(new_car, self.bus_start_lane)
-                    or rear(get_next_car(new_car, self.bus_start_lane), 0)
-                        > DISTANCE_MARGIN:
+            if (not get_next_car(new_car, self.bus_start_lane)) \
+                    or rear(get_next_car(new_car, self.bus_start_lane), 0) > DISTANCE_MARGIN:
                 lane.add_car(self.bus_queue.pop(0))
 
         for queue in self.car_queues_init:
             if len(queue[0]):
                 lane = queue[1]
                 new_car = queue[0][0]
-                if (not get_next_car(new_car, lane)
+                if (not get_next_car(new_car, lane)) \
                         or rear(get_next_car(new_car, lane), 0) > DISTANCE_MARGIN:
                     lane.add_car(queue[0].pop(0))
 
@@ -123,7 +130,6 @@ class Simulator(object):
                 if target_lanes:
                     random_choice(target_lanes).add_car(queue[0].pop(0))
 
-        # TEA para personas usando transporte público
         if self.people_source.chances_to_appear(self.delta_t):
             line = random.choice(self.line)
             stop = random.choice(line.bus_stops)
@@ -176,24 +182,6 @@ class Simulator(object):
             if not warmup:
                 self.people_finished_public += bus2.people_carried
 
-        self.listener.after_loop(self)
-
-
-lanes = [
-    lane.Lane(),
-    lane.Lane(),
-    lane.Lane(),
-    lane.Lane(),
-]
-
-line_1 = bus_line.BusLine([
-    bus_stop.BusStop(40),
-    bus_stop.BusStop(240),
-    bus_stop.BusStop(440),
-], 1)
-
-line_2 = bus_line.BusLine([
-    bus_stop.BusStop(140),
-    bus_stop.BusStop(340),
-], 2)
+        if self.listener:
+            self.listener.after_loop(self)
 

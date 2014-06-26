@@ -1,7 +1,6 @@
 class BusStop(object):
 
     def __init__(self, position):
-        self.lane = lane
         self.position = position
         self.people = 0
 
