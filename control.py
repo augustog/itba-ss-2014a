@@ -92,7 +92,7 @@ def advance(car, lane, lanes, traffic_lights, time, delta_time):
                     max(0, car_distance - DISTANCE_MARGIN),
                     delta_time
                 )
-        elif should_change_lane_to_turn and 0 < lanes.index(lane) < len(lanes) - 1:
+        elif should_change_lane_to_turn(car, 100) and 0 < lanes.index(lane) < len(lanes) - 1:
             # Has to stop.
             accelerate_car_to_reach(car, 0, car.distance_to_target_position() - 50, delta_time)
         else:
