@@ -2,6 +2,8 @@ import math
 import random
 from collections import defaultdict
 
+from config import *
+
 import bus as bus_module
 import car as car_module
 import bus_line
@@ -384,3 +386,14 @@ def has_warmup_finished(lanes, min_lanes, min_cars):
     if len([block_cars > min_cars for block_cars in cars_per_block.values()]) > min_lanes:
         return True
     return False
+
+def get_exit_road(position):
+    p = random.random()
+    if p < 0.6:
+        return None
+    if int(math.ceil(position / 100 + 0.0001)) == STREETS:
+        return None
+    return random.choice(range(
+        int(math.ceil(position / 100 + 0.0001)),
+        STREETS
+    ))

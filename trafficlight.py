@@ -14,3 +14,6 @@ class TrafficLight(object):
         return 'Light %s at %d' % (
             'ON' if self.is_green(time) else 'OFF', self.position
         )
+
+    def __lt__(self, other):
+        return self.position - other.position

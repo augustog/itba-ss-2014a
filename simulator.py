@@ -120,10 +120,11 @@ class Simulator(object):
                 new_car = queue[0][0]
                 if (not get_next_car(new_car, lane)) \
                         or rear(get_next_car(new_car, lane), 0) > DISTANCE_MARGIN:
+                    new_car.position += new_car.length + DISTANCE_MARGIN
                     lane.add_car(queue[0].pop(0))
 
         for queue in self.car_queues_corners:
-            if len(queue[0]):
+            if len(queue[0]) and not self.lights[0].is_green(self.current_time):
                 new_car = queue[0][0]
                 target_lanes = filter(lambda x:
                         not x.exclusive and
@@ -133,6 +134,7 @@ class Simulator(object):
                     self.lanes
                 )
                 if target_lanes:
+                    new_car.position += new_car.length + DISTANCE_MARGIN
                     random.choice(target_lanes).add_car(queue[0].pop(0))
 
         if self.people_source.chances_to_appear(self.delta_t):

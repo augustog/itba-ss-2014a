@@ -25,12 +25,23 @@ line_1 = bus_line.BusLine([
     bus_stop.BusStop(40),
     bus_stop.BusStop(240),
     bus_stop.BusStop(440),
-], 1)
+], 70)
 
 line_2 = bus_line.BusLine([
     bus_stop.BusStop(140),
     bus_stop.BusStop(340),
-], 2)
+], 120)
+
+line_3 = bus_line.BusLine([
+    bus_stop.BusStop(80),
+    bus_stop.BusStop(280),
+    bus_stop.BusStop(480),
+], 110)
+
+line_4 = bus_line.BusLine([
+    bus_stop.BusStop(180),
+    bus_stop.BusStop(380),
+], 230)
 
 def get_random_people_for_private_car():
     p = random.random()
@@ -42,14 +53,3 @@ def get_random_people_for_private_car():
         return 3
     else:
         return 4
-
-def get_exit_road(position):
-    p = random.random()
-    if p < 0.6:
-        return None
-    if int(math.ceil(position / 100 + 0.0001)) == STREETS:
-        return None
-    return random.choice(range(
-        int(math.ceil(position / 100 + 0.0001)),
-        STREETS
-    ))
