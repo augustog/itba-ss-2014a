@@ -257,8 +257,9 @@ def decide_lane_change(car, lane, lanes, lanes_direction0, lanes_direction1, tra
                 car.change_lane.reset()
                 return target_faster
 
-def should_change_lane_to_turn(car, current_lane_number):
-    return car.distance_to_target_position() < 50 * current_lane_number
+def should_change_lane_to_turn(car, block_length):
+    return (car.exit_road and
+        car.position >= (car.exit_road - car.blocks_before_turn) * block_length)
 
 def change_lane(car, from_lane, to_lane):
     from_lane.remove_car(car)

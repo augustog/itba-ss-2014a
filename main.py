@@ -222,6 +222,8 @@ def draw_lanes(lanes):
 
 
 def get_color(car):
+    if (control.should_change_lane_to_turn(car, BLOCK_LENGTH)):
+        return GREEN
     return RED
 
 def draw_bus(bus, direction, lane_number):
@@ -287,6 +289,15 @@ def get_exit_road(car):
         return exit
     return None
 
+def get_blocks_before_turn():
+    p = random.random()
+    if p < 0.6:
+        return 1
+    elif p < 0.9:
+        return 2
+    else:
+        return 3
+
 warmup = True
 
 while True:
@@ -308,6 +319,7 @@ while True:
         car.people_carried += get_random_people_for_private_car()
         people_in_private_cars += car.people_carried
         car.exit_road = get_exit_road(car)
+	car.blocks_before_turn = get_blocks_before_turn();
         car.started = current_time
         cars.append(car)
 
