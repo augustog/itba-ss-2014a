@@ -28,6 +28,7 @@ pygame.init()
 pygame.font.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 font = pygame.font.Font(None, 24)
+small_font = pygame.font.Font(None, 16)
 
 def draw_line(line_type=STRONG, from_x=0, to_x=0, y=0, color=BLACK):
     if line_type == DOTTED:
@@ -61,7 +62,7 @@ def draw_data(simulator):
     screen.blit(time_text, (TEXT_MARGIN, y))
     y += time_text.get_height() + TEXT_LINE_MARGIN
     if simulator.time_spent_public > 0 and simulator.time_spent_private > 0:
-        time_text = font.render('Speed on cars: %d, Speed on buses: %d' % (
+        time_text = font.render('Speed on cars: %0.2f m/s, Speed on buses: %0.2f m/s' % (
             simulator.meters_covered_private/simulator.time_spent_private,
             simulator.meters_covered_public/simulator.time_spent_public,
         ), True, BLACK)
@@ -113,6 +114,11 @@ def draw_bus(bus, lane_number):
             -BUS_HEIGHT, BUS_WIDTH
         )
     )
+    people_count = small_font.render(str(bus.people_carried), True, BLACK)
+    screen.blit(people_count, (
+        start + bus.position * SCALE_METERS_TO_SCREEN - 2 * BUS_MARGIN,
+        STATS_HEIGHT + LANE_WIDTH * lane_number + BUS_MARGIN / 2,
+    ))
 
 def draw_car(car, lane_number):
     start = START_MARGIN
@@ -124,6 +130,16 @@ def draw_car(car, lane_number):
             -CAR_HEIGHT, CAR_WIDTH
         )
     )
+
+def draw_bus_stops(simulator):
+    start = START_MARGIN
+    for index, line in enumerate(simulator.lines):
+        for stop in line.bus_stops:
+            people_count = small_font.render('(%d, %d)' % (index, stop.people), True, BLUE)
+            screen.blit(people_count, (
+                start + stop.position * SCALE_METERS_TO_SCREEN - 2 * BUS_STOP_WIDTH,
+                STATS_HEIGHT - BUS_STOP_WIDTH,
+            ))
 
 def draw_cars(lanes):
     lane_number = 0
@@ -148,6 +164,7 @@ class PygameListener(object):
         draw_data(simulator)
         draw_lanes(simulator, simulator.lanes, simulator.lights)
         draw_cars(simulator.lanes)
+        draw_bus_stops(simulator)
         pygame.display.update()
 
 

@@ -219,7 +219,7 @@ def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
 
 def _get_turning_lane(lane, lanes):
     lane_index = lanes.index(lane)
-    return lanes[lane_index - 1]
+    return lanes[lane_index + 1]
 
 def decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t):
     target_faster = should_change_lane_to_move_faster(car, lane,
