@@ -19,7 +19,6 @@ config_lanes = [
     lane.Lane(),
     lane.Lane(),
     lane.Lane(),
-    lane.Lane(),
 ]
 config_lanes[0].exclusive = True
 
