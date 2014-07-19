@@ -1,18 +1,17 @@
+from config import STREETS
+
 import math
 import random
 from collections import defaultdict
 
-from config import *
-
 import bus as bus_module
 import car as car_module
-import bus_line
-import bus_stop as bus_stop_module
 
 MPS_PER_METER = 3.0
 DISTANCE_MARGIN = 1
 BUS_STOP_MARGIN = 5
 BUS_STOP_DISTANCE = 1
+BUS_CHANGE_DISTANCE = 24
 MARGINAL_DISTANCE = 0.01
 
 def _consecutive_in_set(value, elements, key, compare, select):
@@ -85,6 +84,7 @@ def get_next_car_before_next_traffic_light(car, lane, traffic_lights):
         return None
 
 def advance(car, lane, lanes, traffic_lights, time, delta_time):
+
     next_car = get_next_car_before_next_traffic_light(
         car, lane, traffic_lights
     )
@@ -163,8 +163,16 @@ def advance(car, lane, lanes, traffic_lights, time, delta_time):
         if next_stop:
             distance = next_stop.position - car.position
             if distance < BUS_STOP_DISTANCE:
-                car.just_stopped = True
-                car.closest_stop = next_stop
+                if lane.is_stop_lane:
+                    car.just_stopped = True
+                    car.closest_stop = next_stop
+                    car.position = next_stop.position + MARGINAL_DISTANCE
+                    car.next_stop = get_next_bus_stop(car)
+                else:
+                    # Delay until turning
+                    car.waiting_to_turn = True
+                    car.speed = 0
+                    car.acceleration = 0
             elif distance < BUS_STOP_MARGIN:
                 accelerate_car_to_reach(car, 0, distance, delta_time)
 
@@ -211,6 +219,9 @@ def _get_target_lanes(lane, lanes):
     return [lane.prev, lane.next]
 
 def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
+    if car.delay_time > 0:
+        car.delay_time = max(0, car.delay_time - delta_t)
+        return
     target_lane = decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t)
     if target_lane:
         change_lane(car, lane, target_lane)
@@ -219,6 +230,8 @@ def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
 
 def _get_turning_lane(lane, lanes):
     lane_index = lanes.index(lane)
+    if lane_index + 1 >= len(lanes):
+        return None
     return lanes[lane_index + 1]
 
 def decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t):
@@ -226,23 +239,28 @@ def decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t):
                     _get_target_lanes(lane, lanes), traffic_lights)
     lane_index = lanes.index(lane)
     target_turning = None
-    if lane_index != 0 and lane_index != len(lanes) - 1 and should_change_lane_to_turn(car, lane_index):
-        target_turning = _get_turning_lane(lane, lanes)
-    if target_faster or target_turning:
+    if isinstance(car, bus_module.Bus):
+        if car.distance_to_target_position() < BUS_CHANGE_DISTANCE:
+            return _get_turning_lane(lane, lanes)
+    else:
+        if should_change_lane_to_turn(car, lane_index):
+            target_turning = _get_turning_lane(lane, lanes)
+            target_faster = None
+    if target_turning:
+        if can_change_lane(car, lane, target_turning, traffic_lights):
+            car.change_lane.reset()
+            return target_turning
+        else:
+            return None
+    if target_faster:
         if car.change_lane.chances_to_appear(delta_t):
-            if target_turning:
-                if can_change_lane(car, lane, target_turning, traffic_lights):
-                    car.change_lane.reset()
-                    return target_turning
-                else:
-                    return None
-            if not target_turning and not should_change_lane_to_turn(car, lane_index) and target_faster and can_change_lane(car, lane, target_faster, traffic_lights):
+            if can_change_lane(car, lane, target_faster, traffic_lights):
                 car.change_lane.reset()
                 return target_faster
 
 def should_change_lane_to_turn(car, block_length):
     return (car.exit_road and
-        car.position >= (car.exit_road - car.blocks_before_turn) * block_length)
+            car.position >= (car.exit_road - 0.25 * car.blocks_before_turn) * block_length)
 
 def change_lane(car, from_lane, to_lane):
     from_lane.remove_car(car)
@@ -253,10 +271,10 @@ def can_change_lane(car, current_lane, to_lane, traffic_lights):
     side_car = get_prev_car(car, to_lane)
     next_traffic_light = get_next_traffic_light(car, traffic_lights)
     if (current_lane.exclusive != to_lane.exclusive or
-           (side_car and side_car.position >= rear(car, side_car.speed)) or
-           (next_car and car.position >= rear(next_car, car.speed)) or
-           (next_traffic_light and
-           next_traffic_light.position - car.position < car.length * 1.5)):
+        (side_car and side_car.position >= rear(car, side_car.speed)) or
+        (next_car and car.position >= rear(next_car, car.speed)) or
+        (next_traffic_light and
+         next_traffic_light.position - car.position < car.length * 1.5)):
         # If the car changes lanes the car behind it will be too close
         # or it will be too close to the next car.
         # If the car is too close to the traffic light then it won't
@@ -307,8 +325,6 @@ def should_change_lane_to_move_faster(car, from_lane, target_lanes, traffic_ligh
         return target_lanes[1]
     return False
 
-def bus_stop(bus, stop):
-    bus.pick_up_people(stop.bus_arrived(bus))
 
 car_lane = lambda x: not x.exclusive
 

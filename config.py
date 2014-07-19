@@ -9,6 +9,7 @@ STREETS = 5
 BLOCK_LENGTH = 100
 ROAD_LENGTH = STREETS * 100
 CHANCES_TO_ADD_AT_BEGINNING = 0.6
+DELAY_PER_PERSON = 1
 
 MIN_LANES_OCCUPIED = 4
 MIN_CARS_PER_LANE = 10
@@ -17,7 +18,7 @@ config_lanes = [
     lane.Lane(),
     lane.Lane(),
     lane.Lane(),
-    lane.Lane(),
+    lane.Lane(True),
 ]
 
 line_1 = bus_line.BusLine([

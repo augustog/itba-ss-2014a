@@ -9,6 +9,8 @@ class Bus(Car):
 
     def __init__(self, line, speed, people_carried):
         self.line = line
+        self.closest_stop = None
+        self.waiting_to_turn = False
         self.just_stopped = False
         Car.__init__(self, 0, 0, 1, speed, people_carried)
 
@@ -17,7 +19,6 @@ class Bus(Car):
 
     def people_leave(self):
         number = int(math.floor(random.random() * random.random() / 7 * self.people_carried))
-        print 'Number of people leaving: %d' % number
         self.people_carried -= number
         return number
 

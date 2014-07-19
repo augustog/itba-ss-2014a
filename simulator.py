@@ -46,11 +46,13 @@ class Simulator(object):
     def init_lanes(self, lanes):
         self.lanes = lanes
         self.bus_start_lane = lanes[0]
-        prev = lanes[0]
-        for lane in lanes[1:]:
+        exclusives = False
+        prev = None
+        for lane in lanes[0:]:
+            exclusives = exclusives or lane.exclusive
             lane.prev = prev
             prev = lane
-            if not prev.exclusive and lane.exclusive:
+            if lane.exclusive or not exclusives:
                 self.bus_start_lane = lane
         for lane in lanes[-2::-1]:
             lane.next = prev
@@ -109,6 +111,7 @@ class Simulator(object):
                     self.people_finished_public += number_left
                 self.people_in_the_system_public -= number_left
                 number = bus2.closest_stop.bus_arrived(bus2)
+                bus2.delay_time = DELAY_PER_PERSON * number
                 bus2.people_carried += number
                 bus2.just_stopped = False
 
@@ -188,7 +191,7 @@ class Simulator(object):
             self.people_in_the_system_private -= car.people_carried
             self.cars.remove(car)
             if not self.warmup:
-        	self.people_finished_private += car.people_carried
+                self.people_finished_private += car.people_carried
 
         for bus2 in control.remove_old_buses(self.lanes, 0, ROAD_LENGTH):
             self.people_in_the_system_public -= bus2.people_carried

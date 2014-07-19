@@ -13,6 +13,7 @@ class Car(object):
     def __init__(self, position, exit_road, blocks_before_turn,
             speed, people_carried):
         self.position = position
+        self.delay_time = 0
         self.start_time = 0
         self.exit_road = exit_road
         self.blocks_before_turn = blocks_before_turn
