@@ -221,6 +221,10 @@ class Simulator(object):
         return self.people_finished_public
 
     def has_finished(self):
+        # 1 hora
+        return (self.current_time - self.warmup_time) > 60 * 60
+
+    def has_finished_long(self):
         if self.warmup or len(self.last_300) != 300:
             return False
         len_public = len(self.last_300)
