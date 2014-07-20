@@ -216,7 +216,9 @@ def get_target_time(car, distance):
     return target_time
 
 def _get_target_lanes(lane, lanes):
-    return [lane.prev, lane.next]
+    prev = lane.prev if lane.prev and lane.exclusive == lane.prev.exclusive else None
+    next = lane.next if lane.next and lane.exclusive == lane.next.exclusive else None
+    return [prev, next]
 
 def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
     if car.delay_time > 0:
@@ -230,9 +232,11 @@ def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
 
 def _get_turning_lane(lane, lanes):
     lane_index = lanes.index(lane)
-    if lane_index + 1 >= len(lanes):
+    if not lane.next:
         return None
-    return lanes[lane_index + 1]
+    if lane.next.exclusive != lane.exclusive:
+        return None
+    return lane.next
 
 def decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t):
     target_faster = should_change_lane_to_move_faster(car, lane,

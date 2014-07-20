@@ -48,10 +48,10 @@ class StatisticalSignificanceAchiever(object):
         return n > math.pow(zeta * std / (self.margin * average), 2)
 
 stats = [
-    StatisticalSignificanceAchiever(0.05, 0.02),
-    StatisticalSignificanceAchiever(0.05, 0.02),
-    StatisticalSignificanceAchiever(0.05, 0.02),
-    StatisticalSignificanceAchiever(0.05, 0.02),
+    StatisticalSignificanceAchiever(0.05, 0.10),
+    StatisticalSignificanceAchiever(0.05, 0.10),
+    StatisticalSignificanceAchiever(0.05, 0.10),
+    StatisticalSignificanceAchiever(0.05, 0.10),
 ]
 
 while not condition:

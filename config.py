@@ -16,10 +16,12 @@ MIN_CARS_PER_LANE = 10
 
 config_lanes = [
     lane.Lane(),
-    lane.Lane(),
-    lane.Lane(),
     lane.Lane(True),
+    lane.Lane(),
+    lane.Lane(),
 ]
+config_lanes[0].exclusive = True
+config_lanes[1].exclusive = True
 
 line_1 = bus_line.BusLine([
     bus_stop.BusStop(i) for i in range(40, ROAD_LENGTH, 200)
