@@ -22,7 +22,7 @@ class Simulator(object):
         self.last_300 = []
         self.last_300_private = []
 
-        self.people_source = source.Source(1)
+        self.people_source = source.Source(0.2)
         self.car_source = source.Source(1)
 
         self.warmup = True
@@ -53,17 +53,18 @@ class Simulator(object):
         prev = None
         for lane in lanes[0:]:
             exclusives = exclusives or lane.exclusive
-            lane.prev = prev
+            if prev and lane.exclusive == prev.exclusive:
+                lane.prev = prev
+                prev.next = lane
             prev = lane
             if lane.exclusive or not exclusives:
                 self.bus_start_lane = lane
-        for lane in lanes[-2::-1]:
-            lane.next = prev
-            prev = lane
+        lanes.reverse()
         for index, lane in enumerate(filter(lambda x: x.exclusive, lanes)):
             lane.index = index
         for index, lane in enumerate(filter(lambda x: not x.exclusive, lanes)):
             lane.index = index
+        lanes.reverse()
 
     def init_target_functions(self, lines):
 

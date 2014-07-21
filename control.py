@@ -47,7 +47,6 @@ def get_next_car(car, lane):
 def can_advance(car, lane, lanes, traffic_lights, time):
     pos = car.position
     next_car = get_next_car(car, lane)
-    lane_index = lanes.index(lane)
 
     if is_first_on_traffic_light(car, lane, traffic_lights):
         next_traffic_light = get_next_traffic_light(car, traffic_lights)
@@ -57,10 +56,6 @@ def can_advance(car, lane, lanes, traffic_lights, time):
             return not next_car or rear(next_car, car.speed) > pos
         else:
             return next_traffic_light.position > pos
-    elif should_change_lane_to_turn(car, 100) and 0 < lane_index < len(lanes) - 1 and car.distance_to_target_position() <= 50:
-        if can_change_lane(car, lane, _get_turning_lane(lane, lanes), traffic_lights):
-            return True
-        return False
     else:
         if not next_car:
             return True
@@ -100,7 +95,7 @@ def advance(car, lane, lanes, traffic_lights, time, delta_time):
                     max(0, car_distance - DISTANCE_MARGIN),
                     delta_time
                 )
-        elif should_change_lane_to_turn(car, 100) and 0 < lanes.index(lane) < len(lanes) - 1:
+        elif should_change_lane_to_turn(car, lane.index):
             # Has to stop.
             accelerate_car_to_reach(car, 0, car.distance_to_target_position() - 50, delta_time)
         else:
@@ -216,9 +211,7 @@ def get_target_time(car, distance):
     return target_time
 
 def _get_target_lanes(lane, lanes):
-    prev = lane.prev if lane.prev and lane.exclusive == lane.prev.exclusive else None
-    next = lane.next if lane.next and lane.exclusive == lane.next.exclusive else None
-    return [prev, next]
+    return [lane.prev, lane.next]
 
 def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
     if car.delay_time > 0:
@@ -231,17 +224,12 @@ def do_time_step(car, lane, lanes, traffic_lights, current_time, delta_t):
         advance(car, lane, lanes, traffic_lights, current_time, delta_t)
 
 def _get_turning_lane(lane, lanes):
-    lane_index = lanes.index(lane)
-    if not lane.next:
-        return None
-    if lane.next.exclusive != lane.exclusive:
-        return None
     return lane.next
 
 def decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t):
     target_faster = should_change_lane_to_move_faster(car, lane,
                     _get_target_lanes(lane, lanes), traffic_lights)
-    lane_index = lanes.index(lane)
+    lane_index = lane.index
     target_turning = None
     if isinstance(car, bus_module.Bus):
         if car.distance_to_target_position() < BUS_CHANGE_DISTANCE:
@@ -264,7 +252,7 @@ def decide_lane_change(car, lane, lanes, traffic_lights, current_time, delta_t):
 
 def should_change_lane_to_turn(car, block_length):
     return (car.exit_road and
-            car.position >= (car.exit_road - 0.25 * car.blocks_before_turn) * block_length)
+            car.position >= (car.exit_road - 0.25 * block_length) * 100)
 
 def change_lane(car, from_lane, to_lane):
     from_lane.remove_car(car)
@@ -275,8 +263,8 @@ def can_change_lane(car, current_lane, to_lane, traffic_lights):
     side_car = get_prev_car(car, to_lane)
     next_traffic_light = get_next_traffic_light(car, traffic_lights)
     if (current_lane.exclusive != to_lane.exclusive or
-        (side_car and side_car.position >= rear(car, side_car.speed)) or
-        (next_car and car.position >= rear(next_car, car.speed)) or
+        (side_car and side_car.position >= rear(car, side_car.speed + 1)) or
+        (next_car and car.position >= rear(next_car, car.speed + 1)) or
         (next_traffic_light and
          next_traffic_light.position - car.position < car.length * 1.5)):
         # If the car changes lanes the car behind it will be too close
@@ -286,51 +274,26 @@ def can_change_lane(car, current_lane, to_lane, traffic_lights):
         return False
     return True
 
-# target_lanes should be an array with exactly 2 lanes.
+
 def should_change_lane_to_move_faster(car, from_lane, target_lanes, traffic_lights):
-    next_pos0 = False
-    next_pos1 = False
-    next_pos_current = False
-    to_lane0 = None
-    to_lane1 = None
-    if target_lanes[0]:
-        to_lane0 = can_change_lane(car, from_lane, target_lanes[0], traffic_lights)
-        next_car = get_next_car(car, target_lanes[0])
-        if next_car:
-            next_pos0 = next_car.position
-    if target_lanes[1]:
-        to_lane1 = can_change_lane(car, from_lane, target_lanes[1], traffic_lights)
-        next_car = get_next_car(car, target_lanes[1])
-        if next_car:
-            next_pos1 = next_car.position
-    next_car = get_next_car(car, from_lane)
-    if next_car:
-        next_pos_current = next_car.position
-    if not next_pos_current:
-        return False
-    if to_lane0 and to_lane1:
-        # Car can go to both lanes. Check which lane is better.
-        if not next_pos0:
-            return target_lanes[0]
-        if not next_pos1:
-            return target_lanes[1]
-        if next_pos_current > next_pos0 and next_pos_current > next_pos1:
-            return False
-        if next_pos0 > next_pos1:
-            return target_lanes[0]
-        return target_lanes[1]
-    if to_lane0:
-        if next_pos_current > next_pos0:
-            return False
-        return target_lanes[0]
-    if to_lane1:
-        if next_pos_current > next_pos1:
-            return False
-        return target_lanes[1]
-    return False
+    INFINITE = 1e10
+    target_lanes.append(from_lane)
+    possible_lanes = {
+        target_lane: (get_next_car(car, target_lane), get_prev_car(car, target_lane))
+        for target_lane in target_lanes
+        if target_lane and can_change_lane(car, from_lane, target_lane, traffic_lights)
+    }
+    space_current_lane = INFINITE
+    if from_lane in possible_lanes and possible_lanes[from_lane][0]:
+        space_current_lane = possible_lanes[from_lane][0].position - car.position
 
+    for lane, cars in possible_lanes.items():
+        if lane != from_lane:
+            next_car, prev_car = cars
+            if ((not next_car or next_car.position - car.position > space_current_lane)
+                    and (not prev_car or prev_car.position + car.length > DISTANCE_MARGIN)):
+                return lane
 
-car_lane = lambda x: not x.exclusive
 
 def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
     new_cars = []
@@ -343,7 +306,7 @@ def make_cars_appear(lanes, sources, traffic_lights, time, delta_time):
                         light.position + car_module.Car.length
                         + DISTANCE_MARGIN, 0, 0, 0, 0
                     )
-                    targets = filter(car_lane, lanes)
+                    targets = filter(lambda x: not x.exclusive, lanes)
                     targets = filter(
                         lambda x: not get_next_car(new_car, x) or
                             rear(get_next_car(new_car, x), 0)
