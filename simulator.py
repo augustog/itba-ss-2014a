@@ -44,7 +44,9 @@ class Simulator(object):
         self.buses = []
         self.lines = lines
         for i in range(1, STREETS):
-            self.lights.append(trafficlight.TrafficLight(i * 100, 30))
+            l = trafficlight.TrafficLight(i * 100, 30)
+            l.acc = - i * 5
+            self.lights.append(l)
 
     def init_lanes(self, lanes):
         self.lanes = lanes
