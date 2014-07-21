@@ -54,6 +54,38 @@ stats = [
     StatisticalSignificanceAchiever(0.05, 0.02),
 ]
 
+def _update_histograms(old_histograms, current_histograms, lines):
+    histograms = {}
+    for line in lines:
+        new_histogram = []
+        old_histogram = old_histograms[line]
+        current_histogram = current_histograms[line]
+        for i in range(len(old_histogram)):
+            new_histogram.append(old_histogram[i] + current_histogram[i])
+        histograms[line] = new_histogram
+
+    return histograms
+
+histograms = None
+
+line_1 = bus_line.BusLine([
+    bus_stop.BusStop(i) for i in range(40, ROAD_LENGTH, 200)
+], 70)
+
+line_2 = bus_line.BusLine([
+    bus_stop.BusStop(i) for i in range(140, ROAD_LENGTH, 200)
+], 120)
+
+line_3 = bus_line.BusLine([
+    bus_stop.BusStop(i) for i in range(80, ROAD_LENGTH, 200)
+], 110)
+
+line_4 = bus_line.BusLine([
+    bus_stop.BusStop(i) for i in range(180, ROAD_LENGTH, 200)
+], 230)
+
+config_lines = [line_1, line_2, line_3, line_4]
+
 while not condition:
     config_lanes = [
         lane.Lane(True),
@@ -63,24 +95,17 @@ while not condition:
     ]
     config_lanes[0].exclusive = True
 
-    line_1 = bus_line.BusLine([
-        bus_stop.BusStop(i) for i in range(40, ROAD_LENGTH, 200)
-    ], 70)
+    line_1.last_time_appeared = 0
+    line_2.last_time_appeared = 0
+    line_3.last_time_appeared = 0
+    line_4.last_time_appeared = 0
 
-    line_2 = bus_line.BusLine([
-        bus_stop.BusStop(i) for i in range(140, ROAD_LENGTH, 200)
-    ], 120)
-
-    line_3 = bus_line.BusLine([
-        bus_stop.BusStop(i) for i in range(80, ROAD_LENGTH, 200)
-    ], 110)
-
-    line_4 = bus_line.BusLine([
-        bus_stop.BusStop(i) for i in range(180, ROAD_LENGTH, 200)
-    ], 230)
-
-    config_lines = [line_1, line_2, line_3, line_4]
     sim = sim_module.Simulator(config_lanes, config_lines)
+
+    if not histograms:
+        histograms = {}
+        for line in config_lines:
+            histograms[line] = sim.build_histogram()
 
     while not sim.has_finished():
         sim.loop()
@@ -98,6 +123,10 @@ while not condition:
     stats[2].add_value(round_results[4])
     stats[3].add_value(round_results[5])
 
+    histograms = _update_histograms(histograms, sim.arrival_histograms, config_lines)
+
     condition = all(stat.is_achieved() for stat in stats)
 
     print '%0.2f, %0.2f, %0.4f, %0.4f, %d, %d' % round_results
+
+    print histograms

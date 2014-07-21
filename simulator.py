@@ -5,6 +5,7 @@ import control
 import trafficlight
 from car import Car
 from control import *
+from sets import Set
 
 def get_blocks_before_turn(new_car):
     if new_car.exit_road:
@@ -25,12 +26,14 @@ class Simulator(object):
         self.car_source = source.Source(1)
 
         self.warmup = True
-        self.init_target_functions()
+        self.init_target_functions(lines)
         self.init_lanes(lanes)
         self.init_queues()
         self.init_elements(lines)
 
         self.listener = None
+
+        self.warmup_buses = Set([])
 
     def add_listener(self, listener):
         self.listener = listener
@@ -62,7 +65,7 @@ class Simulator(object):
         for index, lane in enumerate(filter(lambda x: not x.exclusive, lanes)):
             lane.index = index
 
-    def init_target_functions(self):
+    def init_target_functions(self, lines):
 
         self.meters_covered_public = 0
         self.meters_covered_private = 0
@@ -75,6 +78,47 @@ class Simulator(object):
 
         self.people_in_the_system_public = 0
         self.people_in_the_system_private = 0
+
+        self.last_bus_arrival_time = {}
+        self.arrival_histograms = {}
+
+        for line in lines:
+            self.last_bus_arrival_time[line] = 0
+            self.arrival_histograms[line] = self.build_histogram()
+
+    def build_histogram(self):
+        histogram = []
+        for i in range(9):
+            histogram.append(0)
+        return histogram
+
+    def _add_value_to_histogram(self, line, val):
+        histogram = self.arrival_histograms[line]
+        frequency = line.frequency
+        histogram_width = frequency * 1.0 / 9
+        histogram_start = frequency - histogram_width / 2 - 4 * histogram_width
+        histogram_end = frequency + histogram_width / 2 + 4 * histogram_width
+        histogram_x_axis = []
+        i = histogram_start
+        while i <= histogram_end:
+            histogram_x_axis.append(i)
+            i += histogram_width
+        if val < histogram_start:
+            histogram[0] = histogram[0] + 1
+        elif val > histogram_end:
+            histogram[8] = histogram[8] + 1
+        else:
+            for i in range(8):
+                if histogram_x_axis[i] <= val < histogram_x_axis[i+1]:
+                    histogram[i] = histogram[i] + 1
+
+    def _bus_arrived(self, bus):
+        if bus in self.warmup_buses:
+           self.warmup_buses.remove(bus)
+        else:
+            self._add_value_to_histogram(bus.line,
+                    self.current_time - self.last_bus_arrival_time[bus.line])
+            self.last_bus_arrival_time[bus.line] = self.current_time
 
     def init_queues(self):
         self.car_queues_init = [
@@ -120,6 +164,8 @@ class Simulator(object):
             if (not get_next_car(new_car, self.bus_start_lane)) \
                     or rear(get_next_car(new_car, self.bus_start_lane), 0) > DISTANCE_MARGIN:
                 self.bus_start_lane.add_car(self.bus_queue.pop(0))
+                if self.warmup:
+                    self.warmup_buses.add(new_car)
 
         for queue in self.car_queues_init:
             if len(queue[0]):
@@ -198,6 +244,7 @@ class Simulator(object):
             self.buses.remove(bus2)
             if not self.warmup:
                 self.people_finished_public += bus2.people_carried
+                self._bus_arrived(bus2)
 
         self.current_time += self.delta_t
         if not self.warmup and self.current_time - math.ceil(self.current_time) == 0:
